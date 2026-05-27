@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+    SISARST - Configuracion de pruebas del Sprint 1.
+
+    Las pruebas NO usan SQLite en memoria: corren contra una copia MySQL de
+    la base real (red_salud_tayacaja_test), creada con los mismos scripts
+    SQL. Solo asi quedan verificados los disparadores, las restricciones
+    CHECK y los tipos ENUM que definen buena parte de las reglas del
+    sistema y que SQLite no reproduce.
+
+    Preparacion (una sola vez):
+        CREATE DATABASE red_salud_tayacaja_test
+          DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+        y luego ejecutar sobre ella los scripts 01, 02 y 03
+-->
+<phpunit xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:noNamespaceSchemaLocation="vendor/phpunit/phpunit/phpunit.xsd"
+         bootstrap="vendor/autoload.php"
+         colors="true"
+>
+    <testsuites>
+        <testsuite name="Unit">
+            <directory>tests/Unit</directory>
+        </testsuite>
+        <testsuite name="Feature">
+            <directory>tests/Feature</directory>
+        </testsuite>
+    </testsuites>
+    <source>
+        <include>
+            <directory>app</directory>
+        </include>
+    </source>
+    <php>
+        <env name="APP_ENV" value="testing"/>
+        <env name="APP_MAINTENANCE_DRIVER" value="file"/>
+        <env name="BCRYPT_ROUNDS" value="4"/>
+        <env name="BROADCAST_CONNECTION" value="null"/>
+        <env name="CACHE_STORE" value="array"/>
+        <env name="DB_CONNECTION" value="mysql"/>
+        <env name="DB_DATABASE" value="red_salud_tayacaja_test"/>
+        <env name="DB_PORT" value="3307"/>
+        <env name="MAIL_MAILER" value="array"/>
+        <env name="QUEUE_CONNECTION" value="sync"/>
+        <env name="SESSION_DRIVER" value="array"/>
+    </php>
+</phpunit>

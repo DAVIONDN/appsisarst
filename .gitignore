@@ -1,0 +1,44 @@
+# ─── Entorno ──────────────────────────────────────────────────────────────────
+.env
+.env.backup
+.env.production
+.env.*.local
+*.log
+
+# ─── Dependencias (el vendor se instala con: composer install) ─────────────────
+/vendor
+/node_modules
+
+# ─── Cache / temporales de Laravel ────────────────────────────────────────────
+/bootstrap/cache/*.php
+/storage/*.key
+/storage/pail
+/storage/logs/*
+!/storage/logs/.gitkeep
+/storage/framework/cache/*
+!/storage/framework/cache/.gitkeep
+/storage/framework/sessions/*
+!/storage/framework/sessions/.gitkeep
+/storage/framework/views/*
+!/storage/framework/views/.gitkeep
+
+# ─── Tests ────────────────────────────────────────────────────────────────────
+.phpunit.result.cache
+/.phpunit.cache
+
+# ─── IDE / SO ─────────────────────────────────────────────────────────────────
+.DS_Store
+Thumbs.db
+/.idea
+/.vscode
+/.fleet
+/.nova
+/.zed
+/.qodo
+.phpactor.json
+Homestead.json
+Homestead.yaml
+/auth.json
+
+# NOTA: public/build SI se sube al repo para que los companeros
+# no necesiten ejecutar npm run build al clonar el proyecto.
