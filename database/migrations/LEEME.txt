@@ -1,0 +1,10 @@
+﻿Carpeta intencionalmente vacia.
+
+SISARST no usa migraciones de Laravel sobre las tablas del dominio.
+El esquema se crea con docs/04_BASE_DATOS/01_crear_base_datos_MYSQL.sql.
+
+Regenerarlo con migraciones destruiria los 5 disparadores, las restricciones
+CHECK y los tipos ENUM definidos en el modelo entidad-relacion aprobado en el
+documento de diseno.
+
+NO ejecute:  php artisan migrate
