@@ -1,0 +1,25 @@
+{
+  "app/Vista/recursos/js/app.js": {
+    "file": "assets/app-C3wKJFAt.js",
+    "name": "app",
+    "src": "app/Vista/recursos/js/app.js",
+    "isEntry": true
+  },
+  "app/Vista/recursos/scss/app.scss": {
+    "file": "assets/app-PQq1Kq9p.css",
+    "src": "app/Vista/recursos/scss/app.scss",
+    "isEntry": true,
+    "name": "app",
+    "names": [
+      "app.css"
+    ]
+  },
+  "node_modules/bootstrap-icons/font/fonts/bootstrap-icons.woff": {
+    "file": "assets/bootstrap-icons-BeopsB42.woff",
+    "src": "node_modules/bootstrap-icons/font/fonts/bootstrap-icons.woff"
+  },
+  "node_modules/bootstrap-icons/font/fonts/bootstrap-icons.woff2": {
+    "file": "assets/bootstrap-icons-mSm7cUeB.woff2",
+    "src": "node_modules/bootstrap-icons/font/fonts/bootstrap-icons.woff2"
+  }
+}
