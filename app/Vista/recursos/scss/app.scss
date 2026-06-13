@@ -1,0 +1,238 @@
+// =====================================================================
+//  SISARST - Hoja de estilos del sistema (capa Vista)
+//  Identidad visual del documento de diseno: azul institucional y
+//  colores semanticos de estado (verde, amarillo, rojo, celeste).
+// =====================================================================
+
+// --- Paleta institucional --------------------------------------------
+$primary:   #0d5aa7; // azul institucional
+$secondary: #6c757d;
+$success:   #198754; // puntual / activo
+$warning:   #ffc107; // tardanza / pendiente
+$danger:    #dc3545; // falta / inactivo
+$info:      #0dcaf0; // justificado
+
+$font-family-sans-serif: "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+$border-radius: .5rem;
+
+@import "bootstrap/scss/bootstrap";
+@import "bootstrap-icons/font/bootstrap-icons.css";
+@import "flatpickr/dist/flatpickr.min.css";
+
+// --- Variables propias ------------------------------------------------
+:root {
+    --sisarst-sidebar-bg: #0b2d4d;
+    --sisarst-sidebar-hover: #14406b;
+    --sisarst-sidebar-width: 260px;
+}
+
+body {
+    background-color: #f2f5f9;
+    min-height: 100vh;
+}
+
+// --- Estructura del panel --------------------------------------------
+.sisarst-layout {
+    display: flex;
+    min-height: 100vh;
+}
+
+.sisarst-sidebar {
+    width: var(--sisarst-sidebar-width);
+    flex-shrink: 0;
+    background: var(--sisarst-sidebar-bg);
+    color: rgba(255, 255, 255, .85);
+    display: flex;
+    flex-direction: column;
+
+    .sisarst-brand {
+        padding: 1.25rem 1rem;
+        border-bottom: 1px solid rgba(255, 255, 255, .12);
+
+        strong {
+            font-size: 1.35rem;
+            letter-spacing: .08em;
+            color: #fff;
+        }
+
+        small {
+            display: block;
+            font-size: .72rem;
+            color: rgba(255, 255, 255, .6);
+        }
+    }
+
+    .nav-link {
+        color: rgba(255, 255, 255, .8);
+        border-radius: .4rem;
+        margin: .15rem .6rem;
+        padding: .6rem .85rem;
+        display: flex;
+        align-items: center;
+        gap: .65rem;
+
+        &:hover {
+            background: var(--sisarst-sidebar-hover);
+            color: #fff;
+        }
+
+        &.active {
+            background: $primary;
+            color: #fff;
+            font-weight: 600;
+        }
+
+        &.disabled {
+            opacity: .45;
+            pointer-events: none;
+        }
+    }
+
+    .sisarst-nav-title {
+        font-size: .7rem;
+        text-transform: uppercase;
+        letter-spacing: .12em;
+        color: rgba(255, 255, 255, .45);
+        padding: 1rem 1.4rem .35rem;
+    }
+}
+
+.sisarst-main {
+    flex: 1 1 auto;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+}
+
+.sisarst-topbar {
+    background: #fff;
+    border-bottom: 1px solid #dee2e6;
+    padding: .75rem 1.5rem;
+}
+
+.sisarst-content {
+    padding: 1.5rem;
+    flex: 1 1 auto;
+}
+
+// --- Tarjetas de indicadores -----------------------------------------
+.kpi-card {
+    border: 0;
+    border-left: .3rem solid $primary;
+    box-shadow: 0 1px 3px rgba(16, 24, 40, .08);
+
+    .kpi-valor {
+        font-size: 1.9rem;
+        font-weight: 700;
+        line-height: 1;
+    }
+
+    .kpi-titulo {
+        font-size: .74rem;
+        text-transform: uppercase;
+        letter-spacing: .08em;
+        color: $secondary;
+    }
+
+    &.kpi-success { border-left-color: $success; }
+    &.kpi-danger  { border-left-color: $danger; }
+    &.kpi-warning { border-left-color: $warning; }
+    &.kpi-info    { border-left-color: $info; }
+}
+
+.card {
+    border: 0;
+    box-shadow: 0 1px 3px rgba(16, 24, 40, .08);
+}
+
+.card-header {
+    background: #fff;
+    border-bottom: 1px solid #eef1f5;
+    font-weight: 600;
+}
+
+// --- Tablas -----------------------------------------------------------
+.table > :not(caption) > * > * {
+    padding: .65rem .75rem;
+}
+
+.tabla-padron {
+    th {
+        font-size: .76rem;
+        text-transform: uppercase;
+        letter-spacing: .05em;
+        color: $secondary;
+        white-space: nowrap;
+    }
+}
+
+.badge-estado {
+    font-weight: 600;
+    letter-spacing: .03em;
+}
+
+// --- Formularios ------------------------------------------------------
+.form-label {
+    font-weight: 600;
+    font-size: .85rem;
+}
+
+.obligatorio::after {
+    content: " *";
+    color: $danger;
+}
+
+// --- Linea de tiempo del historial (HU-18) ---------------------------
+.timeline {
+    position: relative;
+    padding-left: 1.75rem;
+
+    &::before {
+        content: "";
+        position: absolute;
+        left: .45rem;
+        top: .35rem;
+        bottom: .35rem;
+        width: 2px;
+        background: #dfe5ec;
+    }
+
+    .timeline-item {
+        position: relative;
+        padding-bottom: 1.1rem;
+
+        .timeline-punto {
+            position: absolute;
+            left: -1.52rem;
+            top: .3rem;
+            width: .75rem;
+            height: .75rem;
+            border-radius: 50%;
+            border: 2px solid #fff;
+            box-shadow: 0 0 0 2px #dfe5ec;
+        }
+    }
+}
+
+// --- Impresion --------------------------------------------------------
+@media print {
+    .sisarst-sidebar,
+    .sisarst-topbar,
+    .no-imprimir {
+        display: none !important;
+    }
+}
+
+@media (max-width: 991.98px) {
+    .sisarst-sidebar {
+        position: fixed;
+        z-index: 1040;
+        height: 100%;
+        transform: translateX(-100%);
+        transition: transform .2s ease-in-out;
+
+        &.abierta {
+            transform: translateX(0);
+        }
+    }
+}
