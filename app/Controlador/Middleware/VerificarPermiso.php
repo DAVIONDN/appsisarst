@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 
 declare(strict_types=1);
 
@@ -41,7 +41,7 @@ class VerificarPermiso
         // Sin permiso → dashboard con aviso
         if (! $usuario->tienePermiso($modulo, $accion)) {
             return redirect()->route('dashboard')
-                ->with('warning', 'No tiene permisos para acceder a esa seccion ('.$modulo.' / '.$accion.').');
+                ->with('warning', 'No tiene permisos para acceder a esa seccion (' . $modulo . ' / ' . $accion . ').');
         }
 
         return $next($request);
