@@ -2,8 +2,10 @@
 
 declare(strict_types=1);
 
+use App\Controlador\AsistenciaController;
 use App\Controlador\Auth\LoginController;
 use App\Controlador\DashboardController;
+use App\Controlador\HorarioController;
 use App\Controlador\PersonalController;
 use Illuminate\Support\Facades\Route;
 
@@ -91,6 +93,91 @@ Route::middleware('auth')->group(function (): void {
             ->whereNumber('personal')
             ->middleware('permiso:PADRON,ELIMINAR')
             ->name('reactivar');
+    });
+
+    // -----------------------------------------------------------------
+    //  Modulo 2: Control de Asistencia (Sprint 2)
+    // -----------------------------------------------------------------
+    Route::prefix('asistencia')->name('asistencia.')->group(function (): void {
+
+        // HU-06: consulta por periodo con filtros
+        Route::get('/', [AsistenciaController::class, 'index'])
+            ->middleware('permiso:ASISTENCIA,LEER')
+            ->name('index');
+
+        // HU-05: marcacion de entrada / salida
+        Route::get('/marcar', [AsistenciaController::class, 'create'])
+            ->middleware('permiso:ASISTENCIA,ESCRIBIR')
+            ->name('create');
+
+        Route::post('/', [AsistenciaController::class, 'store'])
+            ->middleware('permiso:ASISTENCIA,ESCRIBIR')
+            ->name('store');
+
+        // Correccion manual de una jornada registrada
+        Route::get('/{asistencia}/editar', [AsistenciaController::class, 'edit'])
+            ->whereNumber('asistencia')
+            ->middleware('permiso:ASISTENCIA,ESCRIBIR')
+            ->name('edit');
+
+        Route::put('/{asistencia}', [AsistenciaController::class, 'update'])
+            ->whereNumber('asistencia')
+            ->middleware('permiso:ASISTENCIA,ESCRIBIR')
+            ->name('update');
+    });
+
+    // -----------------------------------------------------------------
+    //  HU-16: catalogo de horarios y asignacion al personal (Sprint 2)
+    // -----------------------------------------------------------------
+    Route::prefix('horario')->name('horario.')->group(function (): void {
+
+        Route::get('/', [HorarioController::class, 'index'])
+            ->middleware('permiso:ASISTENCIA,LEER')
+            ->name('index');
+
+        Route::get('/nuevo', [HorarioController::class, 'create'])
+            ->middleware('permiso:ASISTENCIA,ESCRIBIR')
+            ->name('create');
+
+        Route::post('/', [HorarioController::class, 'store'])
+            ->middleware('permiso:ASISTENCIA,ESCRIBIR')
+            ->name('store');
+
+        Route::get('/{horario}/editar', [HorarioController::class, 'edit'])
+            ->whereNumber('horario')
+            ->middleware('permiso:ASISTENCIA,ESCRIBIR')
+            ->name('edit');
+
+        Route::put('/{horario}', [HorarioController::class, 'update'])
+            ->whereNumber('horario')
+            ->middleware('permiso:ASISTENCIA,ESCRIBIR')
+            ->name('update');
+
+        // CA-HU16-02: asignacion masiva de horario a personal
+        Route::get('/{horario}/asignar', [HorarioController::class, 'asignarForm'])
+            ->whereNumber('horario')
+            ->middleware('permiso:ASISTENCIA,ESCRIBIR')
+            ->name('asignar.form');
+
+        Route::post('/{horario}/asignar', [HorarioController::class, 'asignar'])
+            ->whereNumber('horario')
+            ->middleware('permiso:ASISTENCIA,ESCRIBIR')
+            ->name('asignar');
+
+        Route::patch('/{horario}/baja', [HorarioController::class, 'desactivar'])
+            ->whereNumber('horario')
+            ->middleware('permiso:ASISTENCIA,ESCRIBIR')
+            ->name('desactivar');
+
+        Route::patch('/{horario}/alta', [HorarioController::class, 'reactivar'])
+            ->whereNumber('horario')
+            ->middleware('permiso:ASISTENCIA,ESCRIBIR')
+            ->name('reactivar');
+
+        Route::patch('/quitar/{personal}', [HorarioController::class, 'quitar'])
+            ->whereNumber('personal')
+            ->middleware('permiso:ASISTENCIA,ESCRIBIR')
+            ->name('quitar');
     });
 });
 

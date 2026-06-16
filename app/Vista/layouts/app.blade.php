@@ -1,7 +1,7 @@
 {{--
     Capa VISTA - Plantilla maestra del panel administrativo.
-    Corresponde a los mockups del apartado 1.5 del documento de diseno.
-    Solo presenta informacion; no consulta la base de datos ni decide reglas.
+    Sprint 1 + Sprint 2 operativos. Los modulos de Sprint 3-5
+    aparecen listados pero deshabilitados.
 --}}
 <!DOCTYPE html>
 <html lang="es">
@@ -37,16 +37,27 @@
                 <i class="bi bi-people-fill"></i> Padron de Personal
             </a>
 
+            <div class="sisarst-nav-title">Sprint 2 · Operativo</div>
+
+            <a class="nav-link {{ request()->routeIs('asistencia.*') ? 'active' : '' }}"
+               href="{{ route('asistencia.index') }}">
+                <i class="bi bi-calendar-check"></i> Control de Asistencia
+            </a>
+
+            <a class="nav-link {{ request()->routeIs('horario.*') ? 'active' : '' }}"
+               href="{{ route('horario.index') }}">
+                <i class="bi bi-clock-history"></i> Horarios de Trabajo
+            </a>
+
             <div class="sisarst-nav-title">Proximos sprints</div>
 
-            <span class="nav-link disabled"><i class="bi bi-calendar-check"></i> Asistencia <small>(S2)</small></span>
             <span class="nav-link disabled"><i class="bi bi-arrow-left-right"></i> Movimientos <small>(S3)</small></span>
             <span class="nav-link disabled"><i class="bi bi-shield-lock"></i> Usuarios y roles <small>(S4)</small></span>
             <span class="nav-link disabled"><i class="bi bi-file-earmark-bar-graph"></i> Reportes <small>(S5)</small></span>
         </nav>
 
         <div class="mt-auto p-3 small text-white-50">
-            v1.0 · Sprint 1<br>
+            v1.0 · Sprint 1-2<br>
             {{ now()->format('d/m/Y') }}
         </div>
     </aside>
@@ -102,7 +113,7 @@
     </div>
 </div>
 
-{{-- Scripts de paginas especificas (formularios, etc.) --}}
+{{-- Scripts de paginas especificas (formularios, validaciones JS) --}}
 @stack('scripts')
 </body>
 </html>
