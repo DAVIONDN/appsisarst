@@ -1,11 +1,11 @@
-# SISARST — Sprint 1: Gestión del Padrón de Personal
+# SISARST — Sprint 1 y Sprint 2
 
 **Sistema Web Integrado para la Gestión del Personal — Red de Salud Tayacaja**
 Arquitectura **MVC** sobre Laravel 12 · PHP 8.2 · MariaDB (puerto 3307) · Bootstrap 5.3
 
 ---
 
-## Alcance de este sprint
+## Sprint 1: Gestión del Padrón de Personal
 
 | HU | RF | Funcionalidad |
 |---|---|---|
@@ -14,9 +14,18 @@ Arquitectura **MVC** sobre Laravel 12 · PHP 8.2 · MariaDB (puerto 3307) · Boo
 | HU-03 | RF-03 | Consultar el padrón con filtros |
 | HU-04 | RF-04 | Desactivar personal (baja lógica) |
 | HU-18 | RF-20 | Consultar el historial laboral |
-| — | RF-13 | Acceso al sistema (base para el control por rol) |
+| — | RF-13 | Acceso al sistema (autenticación y control por rol) |
 
-Los sprints 2 a 5 (asistencia, movimientos, usuarios y reportes) **no** están
+## Sprint 2: Control de Asistencia
+
+| HU | RF | Funcionalidad |
+|---|---|---|
+| HU-05 | RF-05 | Registrar asistencia del personal (marcación entrada/salida) |
+| HU-06 | RF-06 | Consultar asistencia por período con filtros |
+| HU-07 | RF-07 | Registro automático de tardanzas y faltas (tarea 23:30) |
+| HU-16 | RF-16 | Registro y asignación de horarios de trabajo |
+
+Los sprints 3 a 5 (movimientos, usuarios y reportes) **no** están
 implementados; sus entradas del menú aparecen deshabilitadas.
 
 ---
@@ -60,7 +69,7 @@ Contraseña única: **`Sisarst2026$`**
 
 ---
 
-## Mapa de la arquitectura MVC — Sprint 1
+## Mapa de la arquitectura MVC — Sprint 1 y Sprint 2
 
 Las tres capas son carpetas hermanas dentro de `app/`, para que la
 arquitectura se vea directamente en el árbol de directorios:
@@ -77,9 +86,13 @@ app/
 │   ├── Permiso.php                      ← permisos: PADRON.LEER, PADRON.ESCRIBIR…
 │   ├── Usuario.php                      ← cuenta de acceso vinculada al Personal
 │   ├── LogAuditoria.php                 ← trazabilidad de cambios (HU-02 / HU-04)
+│   ├── Asistencia.php                   ← HU-05 / HU-06 / HU-07: jornada diaria del personal
 │   ├── Servicios/
 │   │   ├── PadronService.php            ← registrar(), actualizar(), desactivar(), reactivar()
-│   │   └── AuditoriaService.php         ← registra entradas en log_auditoria
+│   │   ├── AuditoriaService.php         ← registra entradas en log_auditoria
+│   │   ├── AsistenciaService.php        ← registrar(), cerrarJornada() (HU-05)
+│   │   ├── HorarioService.php           ← crear/editar horarios, asignar al personal (HU-16)
+│   │   └── CierreJornadaService.php     ← genera faltas/tardanzas automaticas (HU-07)
 │   └── Excepciones/
 │       └── ReglaNegocioException.php    ← error de regla de negocio del dominio
 │
@@ -91,26 +104,45 @@ app/
 │   ├── auth/
 │   │   └── login.blade.php              ← pantalla de inicio de sesión (RF-13)
 │   ├── dashboard.blade.php              ← tablero con KPIs y últimas incorporaciones
-│   └── personal/
-│       ├── index.blade.php              ← HU-03: listado paginado con filtros
-│       ├── create.blade.php             ← HU-01: formulario de alta
-│       ├── edit.blade.php               ← HU-02: formulario de edición
-│       ├── show.blade.php               ← HU-18: historial laboral / ficha individual
-│       └── _formulario.blade.php        ← campos compartidos HU-01 y HU-02
+│   ├── personal/
+│   │   ├── index.blade.php              ← HU-03: listado paginado con filtros
+│   │   ├── create.blade.php             ← HU-01: formulario de alta
+│   │   ├── edit.blade.php               ← HU-02: formulario de edición
+│   │   ├── show.blade.php               ← HU-18: historial laboral / ficha individual
+│   │   └── _formulario.blade.php        ← campos compartidos HU-01 y HU-02
+│   ├── asistencia/
+│   │   ├── index.blade.php              ← HU-06: consulta por periodo con filtros
+│   │   ├── create.blade.php             ← HU-05: marcacion de entrada / salida
+│   │   └── edit.blade.php               ← corrección manual de jornada registrada
+│   └── horario/
+│       ├── index.blade.php              ← HU-16: listado de horarios activos/inactivos
+│       ├── create.blade.php             ← HU-16: crear nuevo horario
+│       ├── edit.blade.php               ← HU-16: editar horario existente
+│       ├── asignar.blade.php            ← HU-16: asignacion masiva a personal
+│       └── _formulario.blade.php        ← campos compartidos create y edit
 │
 └── Controlador/                         ══ CONTROLADOR ══
     ├── PersonalController.php            ← HU-01 / HU-02 / HU-03 / HU-04 / HU-18
+    ├── AsistenciaController.php          ← HU-05 / HU-06: marcacion y consulta de asistencia
+    ├── HorarioController.php             ← HU-16: CRUD de horarios + asignacion al personal
     ├── DashboardController.php           ← tablero principal con KPIs
     ├── Auth/
     │   └── LoginController.php           ← login / logout (RF-13)
+    ├── Consola/
+    │   └── CerrarJornadaCommand.php      ← HU-07: comando artisan de cierre automatico
     ├── Middleware/
     │   └── VerificarPermiso.php          ← evalúa módulo + acción contra rol_permiso
     └── Validaciones/
         ├── PersonalRequest.php           ← HU-01 / HU-02: DNI, nombres, cargo, teléfono…
         ├── DesactivarPersonalRequest.php ← HU-04: motivo de baja obligatorio
+        ├── MarcacionRequest.php          ← HU-05: validacion de marcacion de asistencia
+        ├── CorregirAsistenciaRequest.php ← corrección manual de jornada
+        ├── HorarioRequest.php            ← HU-16: nombre, entrada, salida, tolerancia
+        ├── AsignarHorarioRequest.php     ← HU-16: asignacion masiva a lista de personal
         └── LoginRequest.php              ← credenciales de acceso al sistema
 
-routes/web.php                           ← enrutamiento + Route::fallback()
+routes/web.php                           ← enrutamiento Sprint 1 + Sprint 2 + Route::fallback()
+routes/console.php                       ← tarea programada HU-07 (cierre jornada 23:30)
 ```
 
 > Esta disposición **no** es la convención de Laravel, que reparte las capas
