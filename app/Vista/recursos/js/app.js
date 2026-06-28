@@ -102,6 +102,29 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
+    // --- Confirmacion generica (horarios, etc.) ----------------------
+    // Botones con clase js-confirmar: usa data-titulo, data-texto y data-form
+    document.querySelectorAll('.js-confirmar').forEach((boton) => {
+        boton.addEventListener('click', async (evento) => {
+            evento.preventDefault();
+            const formulario = document.querySelector(boton.dataset.form);
+
+            const { isConfirmed } = await Swal.fire({
+                title: boton.dataset.titulo || '¿Confirmar accion?',
+                text: boton.dataset.texto || '',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonText: 'Si, continuar',
+                cancelButtonText: 'Cancelar',
+                confirmButtonColor: '#dc3545',
+            });
+
+            if (isConfirmed && formulario) {
+                formulario.submit();
+            }
+        });
+    });
+
     // --- Graficos del tablero ----------------------------------------
     dibujarGrafico('grafico-condicion', 'doughnut');
     dibujarGrafico('grafico-area', 'bar');
