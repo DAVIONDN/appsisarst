@@ -1,5 +1,6 @@
 ﻿<?php
 
+use App\Controlador\Consola\CerrarJornadaCommand;
 use App\Controlador\Middleware\VerificarPermiso;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
@@ -11,6 +12,12 @@ return Application::configure(basePath: dirname(__DIR__))
         commands: __DIR__.'/../routes/console.php',
         health: '/up',
     )
+    ->withCommands([
+        // HU-07: el comando de cierre de jornada vive en Controlador/Consola/,
+        // fuera del directorio que Laravel descubre automaticamente (app/Console/Commands/).
+        // Debe registrarse explicitamente para que Artisan y el scheduler lo encuentren.
+        CerrarJornadaCommand::class,
+    ])
     ->withMiddleware(function (Middleware $middleware): void {
         // Alias usado en las rutas: ->middleware('permiso:PADRON,LEER')
         $middleware->alias([
