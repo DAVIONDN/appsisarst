@@ -4,20 +4,19 @@ declare(strict_types=1);
 
 namespace App\Controlador;
 
-use App\Modelo\Asistencia;
-use App\Modelo\Personal;
+use App\Modelo\MovimientoInstitucional;
 use App\Modelo\Rol;
+use App\Modelo\TipoMovimiento;
 use App\Modelo\Usuario;
 use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\View\View;
 
 /**
- * Capa CONTROLADOR - Tablero del sistema (Sprint 1 + Sprint 2).
+ * Capa CONTROLADOR - Tablero del Sprint 3.
  *
- * Sprint 1: indicadores del padron de personal.
- * Sprint 2: KPIs de asistencia del dia y del mes en curso.
+ * Consolida los indicadores del ciclo de vida de los movimientos
+ * institucionales. Los del padron y la asistencia son de los sprints 1 y 2.
  */
 class DashboardController extends Controller
 {
@@ -27,91 +26,79 @@ class DashboardController extends Controller
         $usuario = Auth::user();
         $usuario->load('roles', 'personal.area.establecimiento');
 
-        $hoy       = Carbon::now('America/Lima')->toDateString();
-        $inicioMes = Carbon::now('America/Lima')->startOfMonth()->toDateString();
+        $hoy = now()->toDateString();
 
-        // -- Alcance de personal segun rol --------------------------------
-        $activos = (int) $this->alcance()->activo()->count();
-
-        // -- KPIs del dia -------------------------------------------------
-        $asistenciasHoy = Asistencia::whereDate('fecha', $hoy)->get();
-
-        $puntualesHoy   = $asistenciasHoy->where('estado', Asistencia::PUNTUAL)->count();
-        $tardanzasHoy   = $asistenciasHoy->where('estado', Asistencia::TARDANZA)->count();
-        $faltasHoy      = $asistenciasHoy->where('estado', Asistencia::FALTA)->count();
-        $justificadosHoy = $asistenciasHoy->where('estado', Asistencia::JUSTIFICADO)->count();
-        $marcadosHoy    = $asistenciasHoy->count();
-        $pendientesHoy  = max(0, $activos - $marcadosHoy);
-
-        // -- KPIs del mes -------------------------------------------------
-        $porEstadoMes = Asistencia::whereBetween('fecha', [$inicioMes, $hoy])
-            ->selectRaw('estado, COUNT(*) AS total')
-            ->groupBy('estado')
-            ->pluck('total', 'estado');
-
-        $totalMes       = (int) $porEstadoMes->sum();
-        $puntualesMes   = (int) ($porEstadoMes[Asistencia::PUNTUAL]   ?? 0);
-        $tardanzasMes   = (int) ($porEstadoMes[Asistencia::TARDANZA]  ?? 0);
-        $cumplimientoMes = $totalMes > 0
-            ? (int) round(($puntualesMes + $tardanzasMes) / $totalMes * 100)
-            : 0;
-
-        $minutosMes = (int) Asistencia::whereBetween('fecha', [$inicioMes, $hoy])
-            ->where('estado', Asistencia::TARDANZA)
-            ->sum('minutos_tardanza');
-
-        // -- Jornadas abiertas hoy ----------------------------------------
-        $jornadasAbiertas = Asistencia::abiertas()
-            ->whereDate('fecha', $hoy)
-            ->with(['personal.area'])
-            ->orderBy('hora_entrada')
-            ->get();
-
-        // -- Ultimos registros de asistencia ------------------------------
-        $ultimas = Asistencia::with(['personal.area'])
-            ->orderByDesc('fecha')
-            ->orderByDesc('hora_entrada')
-            ->limit(10)
-            ->get();
-
-        // -- Personal sin horario asignado (alerta HU-16) -----------------
-        $sinHorario = (int) $this->alcance()->activo()->whereNull('horario_id')->count();
+        $porEstado = collect(MovimientoInstitucional::ESTADOS)
+            ->mapWithKeys(fn (string $e) => [
+                $e => (int) $this->alcance()->where('estado', $e)->count(),
+            ]);
 
         return view('dashboard', [
-            'usuario'          => $usuario,
-            'hoy'              => $hoy,
-            // KPIs del dia
-            'activos'          => $activos,
-            'sinHorario'       => $sinHorario,
-            'puntualesHoy'     => $puntualesHoy,
-            'tardanzasHoy'     => $tardanzasHoy,
-            'faltasHoy'        => $faltasHoy,
-            'justificadosHoy'  => $justificadosHoy,
-            'pendientesHoy'    => $pendientesHoy,
-            // KPIs del mes
-            'porEstadoMes'     => $porEstadoMes,
-            'cumplimientoMes'  => $cumplimientoMes,
-            'minutosMes'       => $minutosMes,
-            // Tablas
-            'jornadasAbiertas' => $jornadasAbiertas,
-            'ultimas'          => $ultimas,
+            'usuario' => $usuario,
+            'porEstado' => $porEstado,
+            'total' => $porEstado->sum(),
+
+            // Movimientos que hoy tienen al trabajador fuera de su puesto
+            'enCurso' => $this->alcance()
+                ->where('estado', MovimientoInstitucional::APROBADO)
+                ->whereDate('fecha_inicio', '<=', $hoy)
+                ->whereDate('fecha_fin', '>=', $hoy)
+                ->with(['personal.area', 'tipo', 'establecimientoDestino'])
+                ->orderBy('fecha_fin')
+                ->get(),
+
+            // Aprobados cuyo periodo ya termino: esperan ser finalizados
+            'vencidos' => $this->alcance()
+                ->where('estado', MovimientoInstitucional::APROBADO)
+                ->whereDate('fecha_fin', '<', $hoy)
+                ->with(['personal', 'tipo'])
+                ->orderBy('fecha_fin')
+                ->get(),
+
+            // Pendientes de decision
+            'pendientes' => $this->alcance()
+                ->where('estado', MovimientoInstitucional::PENDIENTE)
+                ->with(['personal.area', 'tipo'])
+                ->orderBy('fecha_inicio')
+                ->limit(8)
+                ->get(),
+
+            'porTipo' => $this->totalesPorTipo(),
         ]);
     }
 
-    /** Limita los indicadores al area del Jefe de Area (CA-HU03-03). */
+    /**
+     * Totales por tipo de movimiento, contando solo los que siguen
+     * comprometiendo al trabajador o ya se cumplieron.
+     *
+     * @return \Illuminate\Support\Collection<string, int>
+     */
+    private function totalesPorTipo()
+    {
+        return TipoMovimiento::query()
+            ->orderBy('nombre')
+            ->get()
+            ->mapWithKeys(fn (TipoMovimiento $t) => [
+                str_replace('_', ' ', $t->nombre) => (int) $this->alcance()
+                    ->where('tipo_movimiento_id', $t->tipo_movimiento_id)
+                    ->count(),
+            ])
+            ->filter(fn (int $total) => $total > 0);
+    }
+
+    /** El Jefe de Area solo ve los movimientos del personal de su area. */
     private function alcance(): Builder
     {
         /** @var Usuario $usuario */
         $usuario = Auth::user();
 
-        $query = Personal::query();
-
         $esJefeRestringido = $usuario->tieneRol(Rol::JEFE_AREA)
             && ! $usuario->tieneRol(Rol::ADMIN_RRHH, Rol::ADMIN_SISTEMA, Rol::GERENTE_RED)
             && $usuario->areaId() !== null;
 
-        return $esJefeRestringido
-            ? $query->where('personal.area_id', $usuario->areaId())
-            : $query;
+        return MovimientoInstitucional::query()->when(
+            $esJefeRestringido,
+            fn (Builder $q) => $q->whereHas('personal', fn (Builder $p) => $p->where('area_id', $usuario->areaId()))
+        );
     }
 }
