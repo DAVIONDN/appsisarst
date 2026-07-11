@@ -6,6 +6,7 @@ use App\Controlador\AsistenciaController;
 use App\Controlador\Auth\LoginController;
 use App\Controlador\DashboardController;
 use App\Controlador\HorarioController;
+use App\Controlador\MovimientoController;
 use App\Controlador\PersonalController;
 use Illuminate\Support\Facades\Route;
 
@@ -18,11 +19,16 @@ use Illuminate\Support\Facades\Route;
 | Cada ruta protegida declara el permiso exacto que exige, resuelto por el
 | middleware "permiso" contra las tablas rol / permiso / rol_permiso.
 |
-|  HU-01  POST   /personal                    PADRON.ESCRIBIR
-|  HU-02  PUT    /personal/{personal}         PADRON.EDITAR
-|  HU-03  GET    /personal                    PADRON.LEER
-|  HU-04  PATCH  /personal/{personal}/baja    PADRON.ELIMINAR
-|  HU-18  GET    /personal/{personal}         PADRON.LEER
+|  HU-01  POST   /personal                         PADRON.ESCRIBIR
+|  HU-02  PUT    /personal/{personal}              PADRON.EDITAR
+|  HU-03  GET    /personal                         PADRON.LEER
+|  HU-04  PATCH  /personal/{personal}/baja         PADRON.ELIMINAR
+|  HU-18  GET    /personal/{personal}              PADRON.LEER
+|
+|  HU-08  POST   /movimiento                       MOVIMIENTOS.ESCRIBIR
+|  HU-09  GET    /movimiento                       MOVIMIENTOS.LEER
+|  HU-09  GET    /movimiento/{movimiento}          MOVIMIENTOS.LEER
+|  HU-10  PATCH  /movimiento/{movimiento}/estado   MOVIMIENTOS.EDITAR
 |
 */
 
@@ -178,6 +184,54 @@ Route::middleware('auth')->group(function (): void {
             ->whereNumber('personal')
             ->middleware('permiso:ASISTENCIA,ESCRIBIR')
             ->name('quitar');
+    });
+
+    // -----------------------------------------------------------------
+    //  Modulo 3: Movimientos Institucionales (Sprint 3)
+    // -----------------------------------------------------------------
+    Route::prefix('movimiento')->name('movimiento.')->group(function (): void {
+
+        // HU-09: consulta e historial de movimientos con filtros
+        Route::get('/', [MovimientoController::class, 'index'])
+            ->middleware('permiso:MOVIMIENTOS,LEER')
+            ->name('index');
+
+        // HU-08: registro de un nuevo movimiento
+        Route::get('/nuevo', [MovimientoController::class, 'create'])
+            ->middleware('permiso:MOVIMIENTOS,ESCRIBIR')
+            ->name('create');
+
+        Route::post('/', [MovimientoController::class, 'store'])
+            ->middleware('permiso:MOVIMIENTOS,ESCRIBIR')
+            ->name('store');
+
+        // HU-10: finalizar en bloque movimientos aprobados con periodo vencido
+        Route::patch('/finalizar-vencidos', [MovimientoController::class, 'finalizarVencidos'])
+            ->middleware('permiso:MOVIMIENTOS,EDITAR')
+            ->name('finalizar-vencidos');
+
+        // HU-09: detalle individual del movimiento
+        Route::get('/{movimiento}', [MovimientoController::class, 'show'])
+            ->whereNumber('movimiento')
+            ->middleware('permiso:MOVIMIENTOS,LEER')
+            ->name('show');
+
+        // HU-08: edicion de un movimiento PENDIENTE
+        Route::get('/{movimiento}/editar', [MovimientoController::class, 'edit'])
+            ->whereNumber('movimiento')
+            ->middleware('permiso:MOVIMIENTOS,ESCRIBIR')
+            ->name('edit');
+
+        Route::put('/{movimiento}', [MovimientoController::class, 'update'])
+            ->whereNumber('movimiento')
+            ->middleware('permiso:MOVIMIENTOS,ESCRIBIR')
+            ->name('update');
+
+        // HU-10: cambio de estado segun la maquina de estados
+        Route::patch('/{movimiento}/estado', [MovimientoController::class, 'cambiarEstado'])
+            ->whereNumber('movimiento')
+            ->middleware('permiso:MOVIMIENTOS,EDITAR')
+            ->name('estado');
     });
 });
 

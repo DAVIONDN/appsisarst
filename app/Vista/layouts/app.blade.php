@@ -1,7 +1,7 @@
 {{--
     Capa VISTA - Plantilla maestra del panel administrativo.
-    Sprint 1 + Sprint 2 operativos. Los modulos de Sprint 3-5
-    aparecen listados pero deshabilitados.
+    Sprint 3: el menu habilita Movimientos Institucionales; los modulos de
+    los demas sprints aparecen listados pero deshabilitados.
 --}}
 <!DOCTYPE html>
 <html lang="es">
@@ -15,9 +15,6 @@
 <body>
 <div class="sisarst-layout">
 
-    {{-- ---------------------------------------------------------- --}}
-    {{--  Menu lateral                                              --}}
-    {{-- ---------------------------------------------------------- --}}
     <aside class="sisarst-sidebar no-imprimir">
         <div class="sisarst-brand">
             <strong>SISARST</strong>
@@ -30,41 +27,27 @@
                 <i class="bi bi-speedometer2"></i> Tablero
             </a>
 
-            <div class="sisarst-nav-title">Sprint 1 · Operativo</div>
+            <div class="sisarst-nav-title">Sprint 3 · Operativo</div>
 
-            <a class="nav-link {{ request()->routeIs('personal.*') ? 'active' : '' }}"
-               href="{{ route('personal.index') }}">
-                <i class="bi bi-people-fill"></i> Padron de Personal
+            <a class="nav-link {{ request()->routeIs('movimiento.*') ? 'active' : '' }}"
+               href="{{ route('movimiento.index') }}">
+                <i class="bi bi-arrow-left-right"></i> Movimientos Institucionales
             </a>
 
-            <div class="sisarst-nav-title">Sprint 2 · Operativo</div>
+            <div class="sisarst-nav-title">Otros sprints</div>
 
-            <a class="nav-link {{ request()->routeIs('asistencia.*') ? 'active' : '' }}"
-               href="{{ route('asistencia.index') }}">
-                <i class="bi bi-calendar-check"></i> Control de Asistencia
-            </a>
-
-            <a class="nav-link {{ request()->routeIs('horario.*') ? 'active' : '' }}"
-               href="{{ route('horario.index') }}">
-                <i class="bi bi-clock-history"></i> Horarios de Trabajo
-            </a>
-
-            <div class="sisarst-nav-title">Proximos sprints</div>
-
-            <span class="nav-link disabled"><i class="bi bi-arrow-left-right"></i> Movimientos <small>(S3)</small></span>
+            <span class="nav-link disabled"><i class="bi bi-people-fill"></i> Padron de Personal <small>(S1)</small></span>
+            <span class="nav-link disabled"><i class="bi bi-calendar-check"></i> Asistencia <small>(S2)</small></span>
             <span class="nav-link disabled"><i class="bi bi-shield-lock"></i> Usuarios y roles <small>(S4)</small></span>
             <span class="nav-link disabled"><i class="bi bi-file-earmark-bar-graph"></i> Reportes <small>(S5)</small></span>
         </nav>
 
         <div class="mt-auto p-3 small text-white-50">
-            v1.0 · Sprint 1-2<br>
+            v1.0 · Sprint 3<br>
             {{ now()->format('d/m/Y') }}
         </div>
     </aside>
 
-    {{-- ---------------------------------------------------------- --}}
-    {{--  Contenido                                                 --}}
-    {{-- ---------------------------------------------------------- --}}
     <div class="sisarst-main">
 
         <header class="sisarst-topbar d-flex align-items-center justify-content-between">
@@ -90,9 +73,7 @@
                     </span>
                 </button>
                 <ul class="dropdown-menu dropdown-menu-end">
-                    <li class="dropdown-header small">
-                        {{ auth()->user()->correo_institucional }}
-                    </li>
+                    <li class="dropdown-header small">{{ auth()->user()->correo_institucional }}</li>
                     <li><hr class="dropdown-divider"></li>
                     <li>
                         <form method="POST" action="{{ route('logout') }}">
@@ -112,8 +93,5 @@
         </main>
     </div>
 </div>
-
-{{-- Scripts de paginas especificas (formularios, validaciones JS) --}}
-@stack('scripts')
 </body>
 </html>
