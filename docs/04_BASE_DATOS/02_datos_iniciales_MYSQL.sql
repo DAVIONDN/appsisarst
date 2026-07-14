@@ -44,14 +44,44 @@ INSERT INTO asistencia (personal_id, fecha, hora_entrada, hora_salida, estado, m
  (3, '2026-07-28', NULL,    NULL,    'JUSTIFICADO', 0, 'AUTOMATICO'),
  (4, '2026-07-27', '07:20', '19:00', 'TARDANZA', 10, 'MANUAL');
 
-INSERT INTO movimiento_institucional (personal_id, tipo_movimiento_id, establecimiento_destino_id, fecha_inicio, fecha_fin, motivo) VALUES
- (3, (SELECT tipo_movimiento_id FROM tipo_movimiento WHERE nombre = 'LICENCIA'),          NULL, '2026-07-28', '2026-07-30', 'Licencia por motivos de salud'),
- (4, (SELECT tipo_movimiento_id FROM tipo_movimiento WHERE nombre = 'COMISION_SERVICIO'), 3,    '2026-08-03', '2026-08-07', 'Apoyo en campaña de vacunación'),
- (5, (SELECT tipo_movimiento_id FROM tipo_movimiento WHERE nombre = 'VACACIONES'),        NULL, '2026-08-10', '2026-08-24', 'Descanso físico anual');
+-- Movimientos en todos los estados para demostrar HU-09 y HU-10
+INSERT INTO movimiento_institucional (personal_id, tipo_movimiento_id, establecimiento_destino_id, fecha_inicio, fecha_fin, motivo, estado) VALUES
+ -- PENDIENTE: esperando decision del responsable
+ (3, (SELECT tipo_movimiento_id FROM tipo_movimiento WHERE nombre = 'LICENCIA'),
+     NULL, '2026-07-28', '2026-07-30',
+     'Licencia por motivos de salud personal', 'PENDIENTE'),
+
+ -- PENDIENTE: comision futura solicitada
+ (4, (SELECT tipo_movimiento_id FROM tipo_movimiento WHERE nombre = 'COMISION_SERVICIO'),
+     3, '2026-08-03', '2026-08-07',
+     'Apoyo en campaña de vacunación en Acraquia', 'PENDIENTE'),
+
+ -- APROBADO: vacaciones en curso aprobadas
+ (5, (SELECT tipo_movimiento_id FROM tipo_movimiento WHERE nombre = 'VACACIONES'),
+     NULL, '2026-07-14', '2026-07-28',
+     'Descanso físico anual programado', 'APROBADO'),
+
+ -- RECHAZADO: permiso denegado con motivo
+ (2, (SELECT tipo_movimiento_id FROM tipo_movimiento WHERE nombre = 'PERMISO'),
+     NULL, '2026-07-10', '2026-07-10',
+     'Permiso para trámite personal en Huancavelica', 'RECHAZADO'),
+
+ -- FINALIZADO: comision que ya termino su periodo
+ (1, (SELECT tipo_movimiento_id FROM tipo_movimiento WHERE nombre = 'COMISION_SERVICIO'),
+     2, '2026-07-01', '2026-07-05',
+     'Reunión técnica de coordinación en C.S. Daniel Hernández', 'FINALIZADO');
+
+-- Actualizar motivo de rechazo del movimiento rechazado
+UPDATE movimiento_institucional
+SET motivo_rechazo = 'El personal no cuenta con días de permiso disponibles en la quincena.'
+WHERE motivo = 'Permiso para trámite personal en Huancavelica';
 
 INSERT INTO log_auditoria (usuario_id, entidad, registro_id, accion, detalle) VALUES
  (1, 'personal', 6, 'REGISTRAR_PERSONAL', 'Alta del trabajador con DNI 48521369'),
  (1, 'movimiento_institucional', 1, 'REGISTRAR_MOVIMIENTO', 'Licencia registrada en estado PENDIENTE'),
+ (1, 'movimiento_institucional', 3, 'CAMBIAR_ESTADO_MOVIMIENTO', 'Estado PENDIENTE -> APROBADO del DNI 42589631'),
+ (2, 'movimiento_institucional', 4, 'CAMBIAR_ESTADO_MOVIMIENTO', 'Estado PENDIENTE -> RECHAZADO del DNI 41236589. Motivo: sin dias disponibles'),
+ (2, 'movimiento_institucional', 5, 'CAMBIAR_ESTADO_MOVIMIENTO', 'Estado APROBADO -> FINALIZADO del DNI 45678912'),
  (2, 'usuario', 3, 'CREAR_USUARIO', 'Cuenta rhuaman creada y asociada al rol JEFE_AREA');
 
 

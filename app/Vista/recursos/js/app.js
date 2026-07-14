@@ -125,6 +125,43 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
+    // --- HU-08: toggle establecimiento de destino -------------------
+    // El select tipo_movimiento_id tiene data-requiere-destino="1|0" y
+    // data-destino="#bloque-destino". Al cambiar el tipo se muestra u
+    // oculta el campo de destino y se ajusta el atributo required.
+    document.querySelectorAll('select[data-destino]').forEach((select) => {
+        const bloque = document.querySelector(select.dataset.destino);
+        const campo  = bloque?.querySelector('select, input');
+
+        function actualizarDestino() {
+            const opcion = select.options[select.selectedIndex];
+            const requiere = opcion?.dataset?.requiereDestino === '1';
+            if (bloque) {
+                bloque.style.display = requiere ? '' : 'none';
+            }
+            if (campo) {
+                if (requiere) {
+                    campo.setAttribute('required', '');
+                } else {
+                    campo.removeAttribute('required');
+                    campo.value = '';
+                }
+            }
+        }
+
+        // Estado inicial al cargar (edicion con valor prellenado)
+        actualizarDestino();
+        select.addEventListener('change', actualizarDestino);
+    });
+
+    // --- Flatpickr para filtros de fecha sin restriccion de hoy ------
+    // Los filtros de movimientos pueden apuntar a fechas futuras
+    flatpickr('.js-fecha-libre', {
+        locale: Spanish,
+        dateFormat: 'Y-m-d',
+        allowInput: true,
+    });
+
     // --- Graficos del tablero ----------------------------------------
     dibujarGrafico('grafico-condicion', 'doughnut');
     dibujarGrafico('grafico-area', 'bar');
