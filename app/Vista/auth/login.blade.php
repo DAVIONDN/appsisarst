@@ -72,10 +72,10 @@
                     </form>
 
                     <p class="text-center text-muted small mt-3 mb-0">
-                        {{-- HU-17 se implementa en el Sprint 4 --}}
-                        <span class="text-decoration-none opacity-50">
-                            Olvide mi contrasena (disponible en el Sprint 4)
-                        </span>
+                        {{-- HU-17: recuperacion de contrasena por correo --}}
+                        <a href="{{ route('recuperacion.solicitar') }}" class="text-decoration-none">
+                            <i class="bi bi-envelope me-1"></i>Olvide mi contrasena
+                        </a>
                     </p>
                 </div>
             </div>
