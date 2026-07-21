@@ -46,4 +46,30 @@ class AuditoriaService
             'ip_origen' => $this->request->ip(),
         ]);
     }
+
+    /**
+     * Registra una accion auditada antes de que exista sesion activa.
+     *
+     * Usado por AutenticacionService para los eventos de login/bloqueo,
+     * donde Auth::id() todavia es null porque la sesion aun no se abrio.
+     *
+     * @param  int  $usuarioId  ID del usuario afectado por la accion.
+     */
+    public function registrarComo(
+        int $usuarioId,
+        string $entidad,
+        ?int $registroId,
+        string $accion,
+        ?string $detalle = null
+    ): LogAuditoria {
+        return LogAuditoria::create([
+            'usuario_id' => $usuarioId,
+            'fecha' => now(),
+            'entidad' => $entidad,
+            'registro_id' => $registroId,
+            'accion' => $accion,
+            'detalle' => $detalle,
+            'ip_origen' => $this->request->ip(),
+        ]);
+    }
 }
