@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Controlador;
 
 use App\Modelo\Asistencia;
+use App\Modelo\LogAuditoria;
 use App\Modelo\MovimientoInstitucional;
 use App\Modelo\Personal;
 use App\Modelo\Rol;
@@ -16,12 +17,13 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\View\View;
 
 /**
- * Capa CONTROLADOR - Tablero unificado (Sprints 1, 2 y 3).
+ * Capa CONTROLADOR - Tablero unificado (Sprints 1, 2, 3 y 4).
  *
- * Consolida los indicadores de los tres modulos operativos:
+ * Consolida los indicadores de los cuatro modulos operativos:
  *   Sprint 1 – Padron de Personal
  *   Sprint 2 – Control de Asistencia
  *   Sprint 3 – Movimientos Institucionales
+ *   Sprint 4 – Usuarios y Seguridad
  */
 class DashboardController extends Controller
 {
@@ -94,6 +96,40 @@ class DashboardController extends Controller
             ->limit(8)
             ->get();
 
+        // ─────────────────────────────────────────────────────────────
+        //  Sprint 4 – Usuarios y Seguridad
+        // ─────────────────────────────────────────────────────────────
+        $cuentasActivas   = Usuario::where('estado', Usuario::ESTADO_ACTIVO)->count();
+        $cuentasInactivas = Usuario::where('estado', Usuario::ESTADO_INACTIVO)->count();
+        $cuentasBloqueadas = Usuario::where('estado', Usuario::ESTADO_BLOQUEADO)->count();
+        $sinRol           = Usuario::sinRol()->count();
+        $sinCuenta        = Personal::query()->activo()->whereDoesntHave('usuario')->count();
+
+        // Cuentas con bloqueo (candidatas a desbloquear)
+        $cuentasBloqueadasLista = Usuario::query()
+            ->where('estado', Usuario::ESTADO_BLOQUEADO)
+            ->with('personal')
+            ->orderBy('username')
+            ->get();
+
+        // Eventos de seguridad recientes (RNF-10)
+        $eventosSeg = LogAuditoria::query()
+            ->whereIn('accion', [
+                'INICIAR_SESION', 'CERRAR_SESION', 'ACCESO_FALLIDO', 'BLOQUEAR_CUENTA',
+                'ACCESO_BLOQUEADO', 'ACCESO_DENEGADO', 'SOLICITAR_RECUPERACION',
+                'RESTABLECER_CLAVE', 'RESTABLECER_CLAVE_ADMIN', 'CREAR_USUARIO',
+                'ASIGNAR_ROLES', 'CONFIGURAR_PERMISOS', 'DESBLOQUEAR_USUARIO',
+            ])
+            ->with('usuario.personal')
+            ->orderByDesc('fecha')
+            ->limit(10)
+            ->get();
+
+        $accesosFallidos24h = LogAuditoria::query()
+            ->whereIn('accion', ['ACCESO_FALLIDO', 'BLOQUEAR_CUENTA'])
+            ->where('fecha', '>=', now()->subDay())
+            ->count();
+
         return view('dashboard', [
             'usuario'       => $usuario,
 
@@ -118,6 +154,16 @@ class DashboardController extends Controller
             'movVencidos'   => $movVencidos,
             'movPendientes' => $movPendientes,
             'porTipo'       => $this->totalesPorTipo(),
+
+            // Sprint 4
+            'cuentasActivas'         => $cuentasActivas,
+            'cuentasInactivas'       => $cuentasInactivas,
+            'cuentasBloqueadasCount' => $cuentasBloqueadas,
+            'sinRol'                 => $sinRol,
+            'sinCuenta'              => $sinCuenta,
+            'cuentasBloqueadasLista' => $cuentasBloqueadasLista,
+            'eventosSeg'             => $eventosSeg,
+            'accesosFallidos24h'     => $accesosFallidos24h,
         ]);
     }
 

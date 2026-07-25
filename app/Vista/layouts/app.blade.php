@@ -1,6 +1,6 @@
 {{--
     Capa VISTA - Plantilla maestra del panel administrativo.
-    Sprints 1, 2 y 3 operativos. Los demas aparecen pendientes.
+    Sprints 1, 2, 3 y 4 operativos. Sprint 5 pendiente.
 --}}
 <!DOCTYPE html>
 <html lang="es">
@@ -56,16 +56,28 @@
                 <i class="bi bi-arrow-left-right"></i> Movimientos Institucionales
             </a>
 
-            {{-- ─── Próximos sprints ─── --}}
-            <div class="sisarst-nav-title">Próximos sprints</div>
+            {{-- ─── Sprint 4: Usuarios y Seguridad ─── --}}
+            <div class="sisarst-nav-title">Sprint 4 · Operativo</div>
 
-            <span class="nav-link disabled"><i class="bi bi-shield-lock"></i> Usuarios y Roles <small>(S4)</small></span>
+            <a class="nav-link {{ request()->routeIs('usuario.*') ? 'active' : '' }}"
+               href="{{ route('usuario.index') }}">
+                <i class="bi bi-person-badge"></i> Usuarios del Sistema
+            </a>
+
+            <a class="nav-link {{ request()->routeIs('rol.*') ? 'active' : '' }}"
+               href="{{ route('rol.index') }}">
+                <i class="bi bi-shield-lock"></i> Roles y Permisos
+            </a>
+
+            {{-- ─── Próximos sprints ─── --}}
+            <div class="sisarst-nav-title">Próximo sprint</div>
+
             <span class="nav-link disabled"><i class="bi bi-file-earmark-bar-graph"></i> Reportes <small>(S5)</small></span>
 
         </nav>
 
         <div class="mt-auto p-3 small text-white-50">
-            v1.0 · Sprint 3<br>
+            v1.0 · Sprint 4<br>
             {{ now()->format('d/m/Y') }}
         </div>
     </aside>

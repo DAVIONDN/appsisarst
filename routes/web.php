@@ -4,15 +4,18 @@ declare(strict_types=1);
 
 use App\Controlador\AsistenciaController;
 use App\Controlador\Auth\LoginController;
+use App\Controlador\Auth\RecuperacionController;
 use App\Controlador\DashboardController;
 use App\Controlador\HorarioController;
 use App\Controlador\MovimientoController;
 use App\Controlador\PersonalController;
+use App\Controlador\RolController;
+use App\Controlador\UsuarioController;
 use Illuminate\Support\Facades\Route;
 
 /*
 |--------------------------------------------------------------------------
-| SISARST - Rutas web (Sprint 1: Padron de Personal)
+| SISARST - Rutas web (Sprints 1–4: sistema unificado)
 |--------------------------------------------------------------------------
 |
 | El enrutamiento es la puerta de entrada de la capa Controlador del MVC.
@@ -30,6 +33,13 @@ use Illuminate\Support\Facades\Route;
 |  HU-09  GET    /movimiento/{movimiento}          MOVIMIENTOS.LEER
 |  HU-10  PATCH  /movimiento/{movimiento}/estado   MOVIMIENTOS.EDITAR
 |
+|  HU-11  GET    /usuario                          USUARIOS.LEER
+|  HU-11  POST   /usuario                          USUARIOS.ESCRIBIR
+|  HU-11  PUT    /usuario/{usuario}                USUARIOS.EDITAR
+|  HU-12  GET    /rol                              USUARIOS.LEER
+|  HU-12  PUT    /rol/{rol}/permisos               USUARIOS.EDITAR
+|  HU-17  GET    /olvide-contrasena                publico
+|
 */
 
 // ---------------------------------------------------------------------
@@ -37,7 +47,21 @@ use Illuminate\Support\Facades\Route;
 // ---------------------------------------------------------------------
 Route::middleware('guest')->group(function (): void {
     Route::get('/login', [LoginController::class, 'create'])->name('login');
-    Route::post('/login', [LoginController::class, 'store'])->name('login.store');
+    Route::post('/login', [LoginController::class, 'store'])
+        ->middleware('throttle:10,1')
+        ->name('login.store');
+
+    // HU-17: recuperacion de contrasena por correo
+    Route::get('/olvide-contrasena', [RecuperacionController::class, 'solicitar'])
+        ->name('recuperacion.solicitar');
+    Route::post('/olvide-contrasena', [RecuperacionController::class, 'enviar'])
+        ->middleware('throttle:5,1')
+        ->name('recuperacion.enviar');
+    Route::get('/restablecer/{token}', [RecuperacionController::class, 'formulario'])
+        ->name('recuperacion.formulario');
+    Route::post('/restablecer', [RecuperacionController::class, 'restablecer'])
+        ->middleware('throttle:10,1')
+        ->name('recuperacion.restablecer');
 });
 
 Route::post('/logout', [LoginController::class, 'destroy'])
@@ -232,6 +256,84 @@ Route::middleware('auth')->group(function (): void {
             ->whereNumber('movimiento')
             ->middleware('permiso:MOVIMIENTOS,EDITAR')
             ->name('estado');
+    });
+
+    // -----------------------------------------------------------------
+    //  Modulo 4: Usuarios del Sistema (Sprint 4 - HU-11)
+    // -----------------------------------------------------------------
+    Route::prefix('usuario')->name('usuario.')->group(function (): void {
+
+        Route::get('/', [UsuarioController::class, 'index'])
+            ->middleware('permiso:USUARIOS,LEER')
+            ->name('index');
+
+        Route::get('/nuevo', [UsuarioController::class, 'create'])
+            ->middleware('permiso:USUARIOS,ESCRIBIR')
+            ->name('create');
+
+        Route::post('/', [UsuarioController::class, 'store'])
+            ->middleware('permiso:USUARIOS,ESCRIBIR')
+            ->name('store');
+
+        Route::get('/{usuario}', [UsuarioController::class, 'show'])
+            ->whereNumber('usuario')
+            ->middleware('permiso:USUARIOS,LEER')
+            ->name('show');
+
+        Route::get('/{usuario}/editar', [UsuarioController::class, 'edit'])
+            ->whereNumber('usuario')
+            ->middleware('permiso:USUARIOS,EDITAR')
+            ->name('edit');
+
+        Route::put('/{usuario}', [UsuarioController::class, 'update'])
+            ->whereNumber('usuario')
+            ->middleware('permiso:USUARIOS,EDITAR')
+            ->name('update');
+
+        Route::patch('/{usuario}/baja', [UsuarioController::class, 'desactivar'])
+            ->whereNumber('usuario')
+            ->middleware('permiso:USUARIOS,EDITAR')
+            ->name('desactivar');
+
+        Route::patch('/{usuario}/alta', [UsuarioController::class, 'reactivar'])
+            ->whereNumber('usuario')
+            ->middleware('permiso:USUARIOS,EDITAR')
+            ->name('reactivar');
+
+        Route::patch('/{usuario}/desbloquear', [UsuarioController::class, 'desbloquear'])
+            ->whereNumber('usuario')
+            ->middleware('permiso:USUARIOS,EDITAR')
+            ->name('desbloquear');
+
+        Route::get('/{usuario}/clave', [UsuarioController::class, 'formularioClave'])
+            ->whereNumber('usuario')
+            ->middleware('permiso:USUARIOS,EDITAR')
+            ->name('clave.form');
+
+        Route::patch('/{usuario}/clave', [UsuarioController::class, 'restablecerClave'])
+            ->whereNumber('usuario')
+            ->middleware('permiso:USUARIOS,EDITAR')
+            ->name('clave');
+    });
+
+    // -----------------------------------------------------------------
+    //  Modulo 4: Roles y Permisos (Sprint 4 - HU-12)
+    // -----------------------------------------------------------------
+    Route::prefix('rol')->name('rol.')->group(function (): void {
+
+        Route::get('/', [RolController::class, 'index'])
+            ->middleware('permiso:USUARIOS,LEER')
+            ->name('index');
+
+        Route::get('/{rol}/permisos', [RolController::class, 'edit'])
+            ->whereNumber('rol')
+            ->middleware('permiso:USUARIOS,EDITAR')
+            ->name('edit');
+
+        Route::put('/{rol}/permisos', [RolController::class, 'update'])
+            ->whereNumber('rol')
+            ->middleware('permiso:USUARIOS,EDITAR')
+            ->name('update');
     });
 });
 

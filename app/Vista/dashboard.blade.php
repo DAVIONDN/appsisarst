@@ -1,8 +1,8 @@
-{{-- Capa VISTA - Tablero unificado: Sprints 1, 2 y 3. --}}
+{{-- Capa VISTA - Tablero unificado: Sprints 1, 2, 3 y 4. --}}
 @extends('layouts.app')
 
 @section('titulo', 'Tablero')
-@section('subtitulo', 'Padrón · Asistencia · Movimientos')
+@section('subtitulo', 'Padrón · Asistencia · Movimientos · Usuarios')
 
 @section('contenido')
 
@@ -282,6 +282,117 @@
                     @endforeach
                     </tbody>
                 </table>
+            </div>
+        </div>
+    @endif
+
+    {{-- ═══════════════════════════════════════════════════════ --}}
+    {{--  SPRINT 4 — Usuarios y Seguridad                      --}}
+    {{-- ═══════════════════════════════════════════════════════ --}}
+    <div class="d-flex align-items-center gap-2 mb-2 mt-4">
+        <span class="badge text-bg-secondary">Sprint 4</span>
+        <h6 class="mb-0 text-muted">Usuarios y Seguridad</h6>
+        <hr class="flex-grow-1 my-0">
+        @if (auth()->user()->tienePermiso('USUARIOS', 'LEER'))
+            <a href="{{ route('usuario.index') }}" class="small text-decoration-none">Ver usuarios</a>
+        @endif
+    </div>
+
+    <div class="row g-3 mb-4">
+        @foreach ([
+            ['Cuentas activas',   $cuentasActivas,         'success', 'bi-person-check-fill'],
+            ['Inactivas',         $cuentasInactivas,        'info',    'bi-person-dash'],
+            ['Bloqueadas',        $cuentasBloqueadasCount,  'danger',  'bi-lock-fill'],
+            ['Sin rol asignado',  $sinRol,                  'warning', 'bi-exclamation-triangle-fill'],
+        ] as [$titulo, $valor, $color, $icono])
+            <div class="col-6 col-lg-3">
+                <div class="card kpi-card kpi-{{ $color }} h-100">
+                    <div class="card-body d-flex justify-content-between align-items-center py-3">
+                        <div>
+                            <div class="kpi-titulo">{{ $titulo }}</div>
+                            <div class="kpi-valor">{{ $valor }}</div>
+                        </div>
+                        <i class="bi {{ $icono }} fs-3 text-{{ $color }} opacity-50"></i>
+                    </div>
+                </div>
+            </div>
+        @endforeach
+    </div>
+
+    @if ($sinCuenta > 0 && auth()->user()->tienePermiso('USUARIOS', 'LEER'))
+        <div class="alert alert-light border small mb-3">
+            <i class="bi bi-info-circle me-1"></i>
+            Hay <strong>{{ $sinCuenta }}</strong> trabajador(es) activo(s) sin cuenta de acceso al sistema.
+            @if (auth()->user()->tienePermiso('USUARIOS', 'ESCRIBIR'))
+                <a href="{{ route('usuario.create') }}" class="ms-2">Crear cuenta</a>
+            @endif
+        </div>
+    @endif
+
+    {{-- Cuentas bloqueadas (Sprint 4) --}}
+    @if ($cuentasBloqueadasLista->isNotEmpty() && auth()->user()->tienePermiso('USUARIOS', 'EDITAR'))
+        <div class="card mb-3">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <span><i class="bi bi-lock-fill text-danger me-1"></i> Cuentas bloqueadas</span>
+                <span class="badge text-bg-danger">{{ $cuentasBloqueadasLista->count() }}</span>
+            </div>
+            <div class="table-responsive">
+                <table class="table table-sm mb-0 tabla-padron">
+                    <thead class="table-light">
+                        <tr><th>Usuario</th><th>Trabajador</th><th>Intentos fallidos</th><th class="no-imprimir">Acción</th></tr>
+                    </thead>
+                    <tbody>
+                    @foreach ($cuentasBloqueadasLista as $u)
+                        <tr>
+                            <td class="font-monospace">
+                                <a href="{{ route('usuario.show', $u) }}" class="text-decoration-none">
+                                    {{ $u->username }}
+                                </a>
+                            </td>
+                            <td class="small">{{ $u->personal?->nombre_completo }}</td>
+                            <td class="small text-danger fw-semibold">{{ $u->intentos_fallidos }}</td>
+                            <td class="no-imprimir">
+                                <form method="POST" action="{{ route('usuario.desbloquear', $u) }}" class="d-inline">
+                                    @csrf @method('PATCH')
+                                    <button class="btn btn-sm btn-outline-warning" type="submit" title="Desbloquear">
+                                        <i class="bi bi-unlock"></i>
+                                    </button>
+                                </form>
+                            </td>
+                        </tr>
+                    @endforeach
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    @endif
+
+    {{-- Eventos de seguridad recientes (Sprint 4) --}}
+    @if (auth()->user()->tienePermiso('USUARIOS', 'LEER'))
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <span><i class="bi bi-shield-exclamation me-1 text-primary"></i> Eventos de seguridad recientes</span>
+                @if ($accesosFallidos24h > 0)
+                    <span class="badge text-bg-danger">{{ $accesosFallidos24h }} fallo(s) en 24h</span>
+                @endif
+            </div>
+            <div class="card-body py-3" style="max-height:300px; overflow-y:auto">
+                <div class="timeline">
+                    @forelse ($eventosSeg as $log)
+                        @php($critico = in_array($log->accion, ['ACCESO_FALLIDO','BLOQUEAR_CUENTA','ACCESO_BLOQUEADO'], true))
+                        <div class="timeline-item">
+                            <span class="timeline-punto bg-{{ $critico ? 'danger' : 'primary' }}"></span>
+                            <div class="small fw-semibold">{{ $log->accion }}</div>
+                            <div class="small text-muted">{{ $log->detalle }}</div>
+                            <div class="text-muted" style="font-size:.72rem">
+                                {{ $log->fecha?->format('d/m/Y H:i') }} ·
+                                {{ $log->usuario?->username ?? 'sistema' }}
+                            </div>
+                        </div>
+                    @empty
+                        <p class="text-muted small mb-0">Sin eventos de seguridad registrados.</p>
+                    @endforelse
+                </div>
             </div>
         </div>
     @endif
