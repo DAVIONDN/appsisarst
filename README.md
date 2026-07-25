@@ -12,7 +12,7 @@ Arquitectura **MVC** sobre Laravel 12 · PHP 8.2 · MySQL (puerto 3306) · Boots
 | Sprint 1 | Gestión del Padrón de Personal | [README_SPRINT1.md](README_SPRINT1.md) |
 | Sprint 2 | Control de Asistencia | [README_SPRINT2.md](README_SPRINT2.md) |
 | Sprint 3 | Movimientos Institucionales | [README_SPRINT3.md](README_SPRINT3.md) |
-| Sprint 4 | Usuarios y Roles | _pendiente_ |
+| Sprint 4 | Usuarios y Roles | [README_SPRINT4.md](README_SPRINT4.md) |
 | Sprint 5 | Reportes | _pendiente_ |
 
 ---
@@ -60,7 +60,7 @@ Contraseña única: **`Sisarst2026$`**
 
 - **No ejecute `php artisan migrate`.** El esquema se crea con los scripts SQL.
   La carpeta `database/migrations` está vacía a propósito.
-- **Puerto de base de datos: 3307.** Asegúrese que `DB_PORT=3307` en `.env`.
+- **Puerto de base de datos: 3306.** Asegúrese que `DB_PORT=3306` en `.env`.
 - **`.env` nunca se sube al repositorio.**
 
 ---
