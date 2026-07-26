@@ -17,10 +17,14 @@
     <div class="col-12 col-md-6">
         <label for="personal_id" class="form-label obligatorio">Trabajador del padron</label>
         <select class="form-select @error('personal_id') is-invalid @enderror"
-                id="personal_id" name="personal_id" required>
-            <option value="">-- Seleccione --</option>
+                id="personal_id" name="personal_id" required
+                data-correo-target="correo_institucional"
+                data-username-target="username">
+            <option value="" data-correo="" data-nombres="">-- Seleccione --</option>
             @foreach ($personal as $p)
                 <option value="{{ $p->personal_id }}"
+                        data-correo="{{ $p->correo ?? '' }}"
+                        data-nombres="{{ mb_strtolower(str_replace(' ', '.', $p->apellidos)) }}"
                     @selected((string) old('personal_id', $u?->personal_id) === (string) $p->personal_id)>
                     {{ $p->nombre_completo }} — {{ $p->dni }} ({{ $p->area?->nombre }})
                 </option>
@@ -35,7 +39,9 @@
         <input type="email" maxlength="120"
                class="form-control @error('correo_institucional') is-invalid @enderror"
                id="correo_institucional" name="correo_institucional"
-               value="{{ old('correo_institucional', $u?->correo_institucional) }}" required>
+               value="{{ old('correo_institucional', $u?->correo_institucional) }}"
+               placeholder="Seleccione primero un trabajador"
+               required>
         <div class="form-text">A esta direccion se envia el enlace de recuperacion (HU-17).</div>
         @error('correo_institucional') <div class="invalid-feedback">{{ $message }}</div> @enderror
     </div>

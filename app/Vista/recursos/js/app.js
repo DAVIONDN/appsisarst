@@ -162,6 +162,37 @@ document.addEventListener('DOMContentLoaded', () => {
         allowInput: true,
     });
 
+    // --- HU-11: auto-completar correo al seleccionar trabajador ------
+    // El select personal_id tiene data-correo-target="correo_institucional"
+    // y data-username-target="username". Al elegir un trabajador, se
+    // pre-rellena el correo y se sugiere el username desde los apellidos.
+    const selectPersonal = document.querySelector('select[data-correo-target]');
+    if (selectPersonal) {
+        const campoCorreo   = document.getElementById(selectPersonal.dataset.correoTarget);
+        const campoUsername = document.getElementById(selectPersonal.dataset.usernameTarget);
+
+        selectPersonal.addEventListener('change', () => {
+            const opcion = selectPersonal.options[selectPersonal.selectedIndex];
+            const correo  = opcion?.dataset?.correo  ?? '';
+            const nombres = opcion?.dataset?.nombres ?? '';
+
+            // Solo rellena si el campo esta vacio (no sobreescribe lo que
+            // el usuario ya escribio a mano ni el valor del old() en edicion)
+            if (campoCorreo && campoCorreo.value === '') {
+                campoCorreo.value = correo;
+            }
+
+            // Sugiere username = primera parte del apellido (sin tildes)
+            if (campoUsername && campoUsername.value === '' && nombres !== '') {
+                const sugerencia = nombres
+                    .normalize('NFD')
+                    .replace(/[̀-ͯ]/g, '')  // quita tildes
+                    .replace(/[^a-z0-9.]/g, '');       // solo chars validos
+                campoUsername.value = sugerencia.slice(0, 40);
+            }
+        });
+    }
+
     // --- Graficos del tablero ----------------------------------------
     dibujarGrafico('grafico-condicion', 'doughnut');
     dibujarGrafico('grafico-area', 'bar');
