@@ -40,9 +40,21 @@
                class="form-control @error('correo_institucional') is-invalid @enderror"
                id="correo_institucional" name="correo_institucional"
                value="{{ old('correo_institucional', $u?->correo_institucional) }}"
-               placeholder="Seleccione primero un trabajador"
+               placeholder="usuario@redsaludtayacaja.gob.pe"
+               pattern="[^@\s]+@[^@\s]+\.[^@\s]+"
+               title="Ingrese un correo valido con @. Ejemplo: usuario@redsaludtayacaja.gob.pe"
+               autocomplete="off"
+               oninvalid="this.setCustomValidity(
+                   this.value === ''
+                       ? 'El correo institucional es obligatorio.'
+                       : 'Debe contener @ y un dominio valido. Ejemplo: usuario@redsaludtayacaja.gob.pe'
+               )"
+               oninput="this.setCustomValidity('')"
                required>
-        <div class="form-text">A esta direccion se envia el enlace de recuperacion (HU-17).</div>
+        <div class="form-text">
+            <i class="bi bi-at"></i>
+            Obligatorio · debe contener <strong>@</strong> · a esta direccion se envia el enlace de recuperacion (HU-17).
+        </div>
         @error('correo_institucional') <div class="invalid-feedback">{{ $message }}</div> @enderror
     </div>
 
