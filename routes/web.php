@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use App\Controlador\AsistenciaController;
+use App\Controlador\ReporteController;
 use App\Controlador\Auth\LoginController;
 use App\Controlador\Auth\RecuperacionController;
 use App\Controlador\DashboardController;
@@ -314,6 +315,32 @@ Route::middleware('auth')->group(function (): void {
             ->whereNumber('usuario')
             ->middleware('permiso:USUARIOS,EDITAR')
             ->name('clave');
+    });
+
+    // -----------------------------------------------------------------
+    //  Modulo 5: Reportes Administrativos (Sprint 5 - HU-13, HU-14, HU-15)
+    // -----------------------------------------------------------------
+    Route::prefix('reporte')->name('reporte.')->group(function (): void {
+
+        // Pantalla principal con las tres pestanas
+        Route::get('/', [ReporteController::class, 'index'])
+            ->middleware('permiso:REPORTES,LEER')
+            ->name('index');
+
+        // HU-13: reporte de personal
+        Route::get('/personal', [ReporteController::class, 'personal'])
+            ->middleware('permiso:REPORTES,LEER')
+            ->name('personal');
+
+        // HU-14: reporte de asistencia
+        Route::get('/asistencia', [ReporteController::class, 'asistencia'])
+            ->middleware('permiso:REPORTES,LEER')
+            ->name('asistencia');
+
+        // HU-15: reporte de movimientos
+        Route::get('/movimientos', [ReporteController::class, 'movimientos'])
+            ->middleware('permiso:REPORTES,LEER')
+            ->name('movimientos');
     });
 
     // -----------------------------------------------------------------

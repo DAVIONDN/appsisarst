@@ -69,15 +69,18 @@
                 <i class="bi bi-shield-lock"></i> Roles y Permisos
             </a>
 
-            {{-- ─── Próximos sprints ─── --}}
-            <div class="sisarst-nav-title">Próximo sprint</div>
+            {{-- ─── Sprint 5: Reportes Administrativos ─── --}}
+            <div class="sisarst-nav-title">Sprint 5 · Operativo</div>
 
-            <span class="nav-link disabled"><i class="bi bi-file-earmark-bar-graph"></i> Reportes <small>(S5)</small></span>
+            <a class="nav-link {{ request()->routeIs('reporte.*') ? 'active' : '' }}"
+               href="{{ route('reporte.index') }}">
+                <i class="bi bi-file-earmark-bar-graph"></i> Reportes
+            </a>
 
         </nav>
 
         <div class="mt-auto p-3 small text-white-50">
-            v1.0 · Sprint 4<br>
+            v1.0 · Sprint 5<br>
             {{ now()->format('d/m/Y') }}
         </div>
     </aside>
