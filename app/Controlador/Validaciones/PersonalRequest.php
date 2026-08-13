@@ -42,15 +42,13 @@ class PersonalRequest extends FormRequest
                 'digits:8',
                 Rule::unique('personal', 'dni')->ignore($idActual, 'personal_id'),
             ],
-            // Solo letras (incluyendo tildes y ñ), espacios y guiones.
-            // Debe iniciar con letra. SIN puntos, numeros ni simbolos (CA-HU01-02).
-            'nombres'  => ['required', 'string', 'max:100', 'regex:/^[\p{L}][\p{L}\s\-]*$/u'],
-            'apellidos' => ['required', 'string', 'max:100', 'regex:/^[\p{L}][\p{L}\s\-]*$/u'],
-            // Cargo: empieza con letra, puede tener letras/espacios/guiones/barras
-            // y opcionalmente termina en un ordinal numerico ("Nivel 2", "Grado III").
-            // Rechaza mezclas aleatorias como "qwqw122" y puntos (CA-HU01-02).
+            // Solo letras (incluyendo tildes y ñ) y espacios.
+            // SIN guiones, puntos, numeros ni ningun otro simbolo (CA-HU01-02).
+            'nombres'  => ['required', 'string', 'max:100', 'regex:/^[\p{L}][\p{L}\s]*$/u'],
+            'apellidos' => ['required', 'string', 'max:100', 'regex:/^[\p{L}][\p{L}\s]*$/u'],
+            // Cargo: solo letras y espacios. SIN guiones, barras ni numeros.
             'cargo'    => ['required', 'string', 'min:3', 'max:80',
-                           'regex:/^[\p{L}][\p{L}\s\-\/]*(\s[\dIVXivx]{1,5})?$/u'],
+                           'regex:/^[\p{L}][\p{L}\s]*$/u'],
             'area_id'  => ['required', 'integer', Rule::exists('area', 'area_id')],
             'horario_id' => ['nullable', 'integer', Rule::exists('horario', 'horario_id')],
             'condicion_laboral' => ['required', Rule::in(Personal::CONDICIONES)],
