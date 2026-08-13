@@ -170,30 +170,37 @@ class ExportadorExcel implements Exportador
     private function transmitir(Spreadsheet $libro, string $nombre): Response
     {
         /*
-         * PhpSpreadsheet usa ZipArchive internamente para construir el .xlsx.
-         * ZipArchive escribe al descriptor de archivo nativo del SO, por lo
-         * que bypasea el output buffer de PHP: ob_start()/ob_get_clean() y
-         * StreamedResponse('php://output') NO capturan el binario correcto.
+         * Causa raiz del problema: php.ini de XAMPP tiene output_buffering=0
+         * y display_errors=1. Con estas opciones, cualquier notice/warning de
+         * PHP o de PhpSpreadsheet se imprime directamente en la respuesta HTTP
+         * ANTES de que el binario xlsx pueda enviarse, corrompiendo el archivo.
          *
-         * Solucion: guardar en un archivo temporal real con extension .xlsx,
-         * leer el binario con file_get_contents() y entregarlo directamente.
-         * Se usa sys_get_temp_dir() + uniqid() para garantizar un nombre
-         * unico y evitar colisiones en entornos concurrentes.
+         * Solucion:
+         *   1. ob_start() captura (y descarta luego) cualquier salida espuria
+         *      que se produzca durante el save().
+         *   2. El libro se guarda en storage/app/tmp (directorio Laravel
+         *      garantizado como escribible, sin depender de sys_get_temp_dir).
+         *   3. response()->download() usa BinaryFileResponse de Symfony, que
+         *      sirve el archivo via readfile() directamente al socket, sin
+         *      pasar por ningun output buffer de PHP.
+         *   4. deleteFileAfterSend(true) elimina el temporal al terminar.
          */
-        $tmp = sys_get_temp_dir().DIRECTORY_SEPARATOR.'sisarst_'.uniqid().'.xlsx';
+        $dir = storage_path('app/tmp');
+        if (! is_dir($dir)) {
+            mkdir($dir, 0755, true);
+        }
 
+        $tmp = $dir.DIRECTORY_SEPARATOR.'sisarst_'.uniqid().'.xlsx';
+
+        ob_start();                             // captura posibles notices/warnings
         (new Xlsx($libro))->save($tmp);
+        ob_end_clean();                         // descarta la salida espuria
 
-        $bytes = (string) file_get_contents($tmp);
-        @unlink($tmp);
-
-        return response($bytes, Response::HTTP_OK, [
-            'Content-Type'        => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-            'Content-Disposition' => 'attachment; filename="'.$nombre.'"',
-            'Content-Length'      => strlen($bytes),
-            'Cache-Control'       => 'max-age=0, must-revalidate',
-            'Pragma'              => 'public',
-        ]);
+        return response()->download($tmp, $nombre, [
+            'Content-Type'  => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+            'Cache-Control' => 'max-age=0, must-revalidate',
+            'Pragma'        => 'public',
+        ])->deleteFileAfterSend(true);
     }
 
     /** Convierte 1 en "A", 27 en "AA", etc. */
