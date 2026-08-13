@@ -1,7 +1,7 @@
 # SISARST — Sprint 1: Gestión del Padrón de Personal
 
 **Sistema Web Integrado para la Gestión del Personal — Red de Salud Tayacaja**
-Arquitectura **MVC** sobre Laravel 12 · PHP 8.2 · MySQL 9.7 · Bootstrap 5.3
+Arquitectura **MVC** sobre Laravel 12 · PHP 8.2 · MariaDB (puerto 3307) · Bootstrap 5.3
 
 ---
 
@@ -42,10 +42,10 @@ php artisan key:generate
 npm run build
 
 # 5. Servidor
-php artisan serve
+php artisan serve --port=8080
 ```
 
-Abrir <http://127.0.0.1:8000>.
+Abrir <http://127.0.0.1:8080>.
 
 ### Cuentas de demostración
 
@@ -102,8 +102,8 @@ Detalle completo en `docs/05_IMPLEMENTACION_MVC/01_ARQUITECTURA_MVC.md`.
   Regenerarlo con migraciones destruiría los 5 disparadores, las restricciones
   `CHECK` y los tipos `ENUM` del modelo entidad-relación aprobado.
   La carpeta `database/migrations` está vacía a propósito.
-- **No inicie el módulo MySQL del panel de XAMPP.** El proyecto usa el servicio
-  MySQL 9.7 de Windows, que ya ocupa el puerto 3306.
+- **Puerto de base de datos: 3307.** El proyecto usa MariaDB de XAMPP en el
+  puerto 3307 (no el 3306 por defecto). Asegúrese que `DB_PORT=3307` en `.env`.
 - **`.env` nunca se sube al repositorio.**
 
 ---
