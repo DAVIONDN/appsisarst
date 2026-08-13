@@ -130,5 +130,8 @@
         </main>
     </div>
 </div>
+
+{{-- Scripts inyectados por las vistas hijas (validaciones, pickers, etc.) --}}
+@stack('scripts')
 </body>
 </html>
