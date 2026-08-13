@@ -11,8 +11,8 @@ use PhpOffice\PhpSpreadsheet\Style\Alignment;
 use PhpOffice\PhpSpreadsheet\Style\Border;
 use PhpOffice\PhpSpreadsheet\Style\Fill;
 use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
+use Symfony\Component\HttpFoundation\BinaryFileResponse;
 use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\HttpFoundation\StreamedResponse;
 
 /**
  * Estrategia de exportacion a Excel (RF-18 / CA-HU13-03, CA-HU15-04).
@@ -168,19 +168,24 @@ class ExportadorExcel implements Exportador
         return $this->transmitir($libro, $reporte->nombreArchivo().'.xlsx');
     }
 
-    private function transmitir(Spreadsheet $libro, string $nombre): StreamedResponse
+    private function transmitir(Spreadsheet $libro, string $nombre): BinaryFileResponse
     {
-        return new StreamedResponse(
-            function () use ($libro): void {
-                (new Xlsx($libro))->save('php://output');
-            },
-            Response::HTTP_OK,
-            [
+        /*
+         * StreamedResponse escribiendo en php://output puede corromperse
+         * porque Laravel mantiene un buffer de salida activo durante el
+         * ciclo de vida de la peticion. La solucion fiable es guardar el
+         * libro en un archivo temporal y entregar ese archivo con
+         * BinaryFileResponse (deleteFileAfterSend limpia el tmp).
+         */
+        $ruta = tempnam(sys_get_temp_dir(), 'sisarst_').'xlsx';
+        (new Xlsx($libro))->save($ruta);
+
+        return response()
+            ->download($ruta, $nombre, [
                 'Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-                'Content-Disposition' => 'attachment; filename="'.$nombre.'"',
                 'Cache-Control' => 'max-age=0, must-revalidate',
-            ]
-        );
+            ])
+            ->deleteFileAfterSend(true);
     }
 
     /** Convierte 1 en "A", 27 en "AA", etc. */
