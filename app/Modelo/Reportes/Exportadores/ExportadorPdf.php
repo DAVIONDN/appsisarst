@@ -61,6 +61,11 @@ class ExportadorPdf implements Exportador
             'tamanoLetra' => $columnas >= self::COLUMNAS_LETRA_CHICA ? 6.5 : 7.5,
         ])->setPaper('a4', $columnas > self::COLUMNAS_APAISADO ? 'landscape' : 'portrait');
 
+        // Limpiar buffers acumulados (BOM, notices) antes de enviar el PDF.
+        while (ob_get_level() > 0) {
+            ob_end_clean();
+        }
+
         return $pdf->download($reporte->nombreArchivo().'.pdf');
     }
 }

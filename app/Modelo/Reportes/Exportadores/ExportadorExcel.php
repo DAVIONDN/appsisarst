@@ -192,9 +192,20 @@ class ExportadorExcel implements Exportador
 
         $tmp = $dir.DIRECTORY_SEPARATOR.'sisarst_'.uniqid().'.xlsx';
 
-        ob_start();                             // captura posibles notices/warnings
         (new Xlsx($libro))->save($tmp);
-        ob_end_clean();                         // descarta la salida espuria
+
+        /*
+         * Limpiar TODOS los buffers activos antes de enviar el binario.
+         *
+         * public/index.php arranca con ob_start() para retener cualquier
+         * salida espuria (BOM UTF-8, notices, warnings) que se haya
+         * producido durante el ciclo de la peticion. Antes de que
+         * BinaryFileResponse llame a readfile(), vaciamos esa pila para
+         * que el xlsx llegue al socket sin ningun byte previo.
+         */
+        while (ob_get_level() > 0) {
+            ob_end_clean();
+        }
 
         return response()->download($tmp, $nombre, [
             'Content-Type'  => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
