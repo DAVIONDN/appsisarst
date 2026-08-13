@@ -197,15 +197,15 @@ document.addEventListener('DOMContentLoaded', function () {
 
     /* ── Helpers ──────────────────────────────────────────────────────── */
 
-    /** Marca el campo como invalido y muestra/oculta el mensaje de ayuda. */
     function marcarError(input, mensaje) {
         input.classList.add('is-invalid');
         input.classList.remove('is-valid');
-        var fb = input.parentElement.querySelector('.fb-dinamico');
+        var cont = input.closest('.input-group') || input.parentElement;
+        var fb = cont.querySelector('.fb-dinamico');
         if (!fb) {
             fb = document.createElement('div');
             fb.className = 'invalid-feedback fb-dinamico';
-            input.parentElement.appendChild(fb);
+            cont.appendChild(fb);
         }
         fb.textContent = mensaje;
     }
@@ -213,81 +213,99 @@ document.addEventListener('DOMContentLoaded', function () {
     function marcarOk(input) {
         input.classList.remove('is-invalid');
         input.classList.add('is-valid');
-        var fb = input.parentElement.querySelector('.fb-dinamico');
+        var cont = input.closest('.input-group') || input.parentElement;
+        var fb = cont.querySelector('.fb-dinamico');
         if (fb) fb.textContent = '';
     }
 
     function limpiarEstado(input) {
         input.classList.remove('is-invalid', 'is-valid');
-        var fb = input.parentElement.querySelector('.fb-dinamico');
+        var cont = input.closest('.input-group') || input.parentElement;
+        var fb = cont.querySelector('.fb-dinamico');
         if (fb) fb.textContent = '';
     }
 
-    /* ── Regex de validacion ─────────────────────────────────────────── */
-    // Letras Unicode (incluye tildes y ñ), espacios, guiones y puntos
-    var reLetras  = /^[À-ža-zA-Z\s\-\.\']+$/;
-    // Telefono: digitos, +, - y espacios
-    var reTel     = /^[0-9+\- ]{6,15}$/;
-    // Caracteres prohibidos en campos de texto de nombre
-    var reDigitos = /\d/;
+    /* ── Efecto visual al bloquear una tecla ─────────────────────────── */
+    function parpadear(input) {
+        input.classList.add('border-danger');
+        setTimeout(function () { input.classList.remove('border-danger'); }, 300);
+    }
 
-    /* ── Campos de solo letras (Nombres / Apellidos) ─────────────────── */
+    /* ── Regex de validacion ─────────────────────────────────────────── */
+
+    // Caracteres validos para nombres y apellidos: letras Unicode (tildes,
+    // ñ, dieresis), espacios, guiones, puntos y apostrofes.
+    // Se usa el rango À-ÖØ-öø-ÿ para cubrir el Bloque Latino Extendido.
+    var reLetrasOk    = /^[A-Za-zÀ-ÖØ-öø-ÿ\s\-\.\u2019']+$/;
+    // Caracter INVALIDO para nombre/apellido (digito o simbolo especial)
+    var reCarInvalido = /[^A-Za-zÀ-ÖØ-öø-ÿ\s\-\.\u2019']/;
+
+    // Telefono
+    var reTel   = /^[0-9+\- ]{6,15}$/;
+
+    // Cargo: empieza con letra, cuerpo de letras/espacios/guiones/puntos/barras,
+    // opcionalmente termina con un ordinal numerico o romano precedido de espacio.
+    var reCargo = /^[A-Za-zÀ-ÖØ-öø-ÿ][A-Za-zÀ-ÖØ-öø-ÿ\s\-\.\/]*(\s[IVXivx0-9]{1,5})?$/;
+
+    /* ── Campos de solo letras: Nombres y Apellidos ───────────────────── */
     document.querySelectorAll('.js-solo-letras').forEach(function (input) {
 
-        /* Bloquear numeros mientras escribe */
+        /* Bloquear digitos Y simbolos especiales tecla a tecla */
         input.addEventListener('keypress', function (e) {
-            if (/\d/.test(e.key)) {
+            // e.key tiene longitud 1 para caracteres imprimibles
+            if (e.key.length === 1 && reCarInvalido.test(e.key)) {
                 e.preventDefault();
                 parpadear(input);
             }
         });
 
-        /* Limpiar al pegar: quitar digitos del texto pegado */
+        /* Al pegar: eliminar cualquier caracter invalido del texto pegado */
         input.addEventListener('paste', function (e) {
             e.preventDefault();
-            var texto = (e.clipboardData || window.clipboardData).getData('text');
-            var limpio = texto.replace(/\d/g, '');
-            document.execCommand('insertText', false, limpio);
+            var texto  = (e.clipboardData || window.clipboardData).getData('text');
+            var limpio = texto.replace(reCarInvalido, '');
+            /* insertText mantiene el cursor donde corresponde */
+            try { document.execCommand('insertText', false, limpio); }
+            catch (_) { input.value += limpio; }
         });
 
-        /* Validar al salir del campo */
+        /* Validar al perder el foco */
         input.addEventListener('blur', function () {
             var val = input.value.trim();
             if (val === '') { limpiarEstado(input); return; }
-            if (reDigitos.test(val)) {
-                marcarError(input, 'Este campo no acepta numeros. Use solo letras y espacios.');
-            } else if (!reLetras.test(val)) {
+            if (reCarInvalido.test(val)) {
+                marcarError(input, 'Solo se permiten letras (con tildes), espacios y guiones. Sin numeros ni simbolos.');
+            } else if (!reLetrasOk.test(val)) {
                 marcarError(input, 'Solo se permiten letras, espacios y guiones.');
             } else {
                 marcarOk(input);
             }
         });
 
+        /* Limpiar estado al corregir */
         input.addEventListener('input', function () {
-            if (!reDigitos.test(input.value)) limpiarEstado(input);
+            if (!reCarInvalido.test(input.value)) limpiarEstado(input);
         });
     });
 
     /* ── Campo de telefono ───────────────────────────────────────────── */
     document.querySelectorAll('.js-solo-telefono').forEach(function (input) {
 
-        /* Bloquear letras mientras escribe (permitir numeros, +, -, espacio) */
         input.addEventListener('keypress', function (e) {
-            if (!/[0-9+\- ]/.test(e.key)) {
+            if (e.key.length === 1 && !/[0-9+\- ]/.test(e.key)) {
                 e.preventDefault();
                 parpadear(input);
             }
         });
 
-        /* Limpiar al pegar */
         input.addEventListener('paste', function (e) {
             e.preventDefault();
-            var texto = (e.clipboardData || window.clipboardData).getData('text');
+            var texto  = (e.clipboardData || window.clipboardData).getData('text');
             var limpio = texto.replace(/[^0-9+\- ]/g, '');
-            document.execCommand('insertText', false, limpio);
+            try { document.execCommand('insertText', false, limpio); }
+            catch (_) { input.value += limpio; }
         });
 
-        /* Validar al salir */
         input.addEventListener('blur', function () {
             var val = input.value.trim();
             if (val === '') { limpiarEstado(input); return; }
@@ -303,11 +321,21 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     });
 
-    /* ── DNI: solo digitos ───────────────────────────────────────────── */
+    /* ── DNI: solo 8 digitos ─────────────────────────────────────────── */
     var dniInput = document.getElementById('dni');
     if (dniInput) {
         dniInput.addEventListener('keypress', function (e) {
-            if (!/\d/.test(e.key)) { e.preventDefault(); parpadear(dniInput); }
+            if (e.key.length === 1 && !/\d/.test(e.key)) {
+                e.preventDefault();
+                parpadear(dniInput);
+            }
+        });
+        dniInput.addEventListener('paste', function (e) {
+            e.preventDefault();
+            var limpio = (e.clipboardData || window.clipboardData)
+                .getData('text').replace(/\D/g, '').slice(0, 8);
+            try { document.execCommand('insertText', false, limpio); }
+            catch (_) { dniInput.value = limpio; }
         });
         dniInput.addEventListener('blur', function () {
             var val = dniInput.value.trim();
@@ -320,18 +348,26 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 
-    /* ── Cargo: debe iniciar con letras, sin mezcla arbitraria letras+numeros ── */
+    /* ── Cargo: inicia con letra, sin mezclas arbitrarias ────────────── */
     var cargoInput = document.getElementById('cargo');
     if (cargoInput) {
-        // Regex: empieza con letra, luego letras/espacios/guiones/puntos/barras,
-        // opcionalmente termina con un ordinal numerico precedido de espacio.
-        var reCargo = /^[A-Za-zÀ-öø-ÿ][A-Za-zÀ-öø-ÿ\s\-\.\/]*(\s[IVXivx0-9]{1,5})?$/;
+
+        /* Bloquear simbolos claramente invalidos en cargo */
+        var reCargoInv = /[!@#$%^&*()\[\]{};:'"\\|,<>?~`=+]/;
+        cargoInput.addEventListener('keypress', function (e) {
+            if (e.key.length === 1 && reCargoInv.test(e.key)) {
+                e.preventDefault();
+                parpadear(cargoInput);
+            }
+        });
 
         cargoInput.addEventListener('blur', function () {
             var val = cargoInput.value.trim();
             if (val === '') { limpiarEstado(cargoInput); return; }
             if (val.length < 3) {
                 marcarError(cargoInput, 'El cargo debe tener al menos 3 caracteres.');
+            } else if (/^\d/.test(val)) {
+                marcarError(cargoInput, 'El cargo no puede empezar con un numero. Ej: Medico Cirujano.');
             } else if (!reCargo.test(val)) {
                 marcarError(cargoInput, 'El cargo debe iniciar con letras y no mezclar letras con numeros. Ej: Medico Cirujano.');
             } else {
@@ -342,42 +378,68 @@ document.addEventListener('DOMContentLoaded', function () {
         cargoInput.addEventListener('input', function () {
             var val = cargoInput.value.trim();
             if (val.length >= 3 && reCargo.test(val)) marcarOk(cargoInput);
+            else if (val.length > 0) limpiarEstado(cargoInput);
         });
     }
 
-    /* ── Area de trabajo: validar seleccion obligatoria ─────────────── */
-    var areaSelect = document.getElementById('area_id');
-    if (areaSelect) {
-        areaSelect.addEventListener('change', function () {
-            if (areaSelect.value === '') {
-                marcarError(areaSelect, 'Debe seleccionar un area de trabajo.');
+    /* ── Selects obligatorios ────────────────────────────────────────── */
+    ['area_id', 'condicion_laboral'].forEach(function (id) {
+        var sel = document.getElementById(id);
+        if (!sel) return;
+        sel.addEventListener('change', function () {
+            if (sel.value === '') {
+                marcarError(sel, 'Este campo es obligatorio.');
             } else {
-                marcarOk(areaSelect);
+                marcarOk(sel);
             }
         });
-        areaSelect.addEventListener('blur', function () {
-            if (areaSelect.value === '') {
-                marcarError(areaSelect, 'Debe seleccionar un area de trabajo.');
-            }
+        sel.addEventListener('blur', function () {
+            if (sel.value === '') marcarError(sel, 'Este campo es obligatorio.');
         });
-    }
+    });
 
-    /* ── Condicion laboral: validar seleccion obligatoria ────────────── */
-    var condSelect = document.getElementById('condicion_laboral');
-    if (condSelect) {
-        condSelect.addEventListener('change', function () {
-            if (condSelect.value === '') {
-                marcarError(condSelect, 'Debe seleccionar una condicion laboral.');
-            } else {
-                marcarOk(condSelect);
+    /* ── Validacion final al enviar el formulario ────────────────────── */
+    var form = document.querySelector('form');
+    if (form) {
+        form.addEventListener('submit', function (e) {
+            var hayError = false;
+
+            // Nombres y Apellidos
+            document.querySelectorAll('.js-solo-letras').forEach(function (input) {
+                var val = input.value.trim();
+                if (val === '' || reCarInvalido.test(val) || !reLetrasOk.test(val)) {
+                    if (val !== '') {
+                        marcarError(input, 'Solo se permiten letras, espacios y guiones. Sin numeros ni simbolos.');
+                        hayError = true;
+                    }
+                }
+            });
+
+            // Cargo
+            if (cargoInput) {
+                var valC = cargoInput.value.trim();
+                if (valC.length > 0 && (valC.length < 3 || !reCargo.test(valC))) {
+                    marcarError(cargoInput, 'El cargo debe iniciar con letras. Ej: Medico Cirujano.');
+                    hayError = true;
+                }
+            }
+
+            // DNI
+            if (dniInput) {
+                var valD = dniInput.value.trim();
+                if (!/^\d{8}$/.test(valD)) {
+                    marcarError(dniInput, 'El DNI debe tener exactamente 8 digitos numericos.');
+                    hayError = true;
+                }
+            }
+
+            if (hayError) {
+                e.preventDefault();
+                // Scroll al primer campo con error
+                var primerError = form.querySelector('.is-invalid');
+                if (primerError) primerError.scrollIntoView({ behavior: 'smooth', block: 'center' });
             }
         });
-    }
-
-    /* ── Efecto visual al bloquear una tecla ─────────────────────────── */
-    function parpadear(input) {
-        input.classList.add('border-danger');
-        setTimeout(function () { input.classList.remove('border-danger'); }, 300);
     }
 });
 </script>

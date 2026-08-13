@@ -12,7 +12,6 @@ use PhpOffice\PhpSpreadsheet\Style\Border;
 use PhpOffice\PhpSpreadsheet\Style\Fill;
 use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
 use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\HttpFoundation\StreamedResponse;
 
 /**
  * Estrategia de exportacion a Excel (RF-18 / CA-HU13-03, CA-HU15-04).
@@ -168,19 +167,51 @@ class ExportadorExcel implements Exportador
         return $this->transmitir($libro, $reporte->nombreArchivo().'.xlsx');
     }
 
-    private function transmitir(Spreadsheet $libro, string $nombre): StreamedResponse
+    private function transmitir(Spreadsheet $libro, string $nombre): Response
     {
-        return new StreamedResponse(
-            function () use ($libro): void {
-                (new Xlsx($libro))->save('php://output');
-            },
-            Response::HTTP_OK,
-            [
-                'Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-                'Content-Disposition' => 'attachment; filename="'.$nombre.'"',
-                'Cache-Control' => 'max-age=0, must-revalidate',
-            ]
-        );
+        /*
+         * Causa raiz del problema: php.ini de XAMPP tiene output_buffering=0
+         * y display_errors=1. Con estas opciones, cualquier notice/warning de
+         * PHP o de PhpSpreadsheet se imprime directamente en la respuesta HTTP
+         * ANTES de que el binario xlsx pueda enviarse, corrompiendo el archivo.
+         *
+         * Solucion:
+         *   1. ob_start() captura (y descarta luego) cualquier salida espuria
+         *      que se produzca durante el save().
+         *   2. El libro se guarda en storage/app/tmp (directorio Laravel
+         *      garantizado como escribible, sin depender de sys_get_temp_dir).
+         *   3. response()->download() usa BinaryFileResponse de Symfony, que
+         *      sirve el archivo via readfile() directamente al socket, sin
+         *      pasar por ningun output buffer de PHP.
+         *   4. deleteFileAfterSend(true) elimina el temporal al terminar.
+         */
+        $dir = storage_path('app/tmp');
+        if (! is_dir($dir)) {
+            mkdir($dir, 0755, true);
+        }
+
+        $tmp = $dir.DIRECTORY_SEPARATOR.'sisarst_'.uniqid().'.xlsx';
+
+        (new Xlsx($libro))->save($tmp);
+
+        /*
+         * Limpiar TODOS los buffers activos antes de enviar el binario.
+         *
+         * public/index.php arranca con ob_start() para retener cualquier
+         * salida espuria (BOM UTF-8, notices, warnings) que se haya
+         * producido durante el ciclo de la peticion. Antes de que
+         * BinaryFileResponse llame a readfile(), vaciamos esa pila para
+         * que el xlsx llegue al socket sin ningun byte previo.
+         */
+        while (ob_get_level() > 0) {
+            ob_end_clean();
+        }
+
+        return response()->download($tmp, $nombre, [
+            'Content-Type'  => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+            'Cache-Control' => 'max-age=0, must-revalidate',
+            'Pragma'        => 'public',
+        ])->deleteFileAfterSend(true);
     }
 
     /** Convierte 1 en "A", 27 en "AA", etc. */
