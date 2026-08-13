@@ -101,5 +101,8 @@
         </main>
     </div>
 </div>
+
+{{-- Scripts de paginas especificas (formularios, etc.) --}}
+@stack('scripts')
 </body>
 </html>

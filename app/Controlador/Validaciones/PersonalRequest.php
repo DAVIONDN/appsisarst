@@ -42,14 +42,16 @@ class PersonalRequest extends FormRequest
                 'digits:8',
                 Rule::unique('personal', 'dni')->ignore($idActual, 'personal_id'),
             ],
-            'nombres' => ['required', 'string', 'max:100'],
-            'apellidos' => ['required', 'string', 'max:100'],
-            'cargo' => ['required', 'string', 'max:80'],
-            'area_id' => ['required', 'integer', Rule::exists('area', 'area_id')],
+            // Solo letras (incluyendo tildes y ñ), espacios, guiones y puntos (CA-HU01-02)
+            'nombres'  => ['required', 'string', 'max:100', 'regex:/^[\p{L}\s\-\.\']+$/u'],
+            'apellidos' => ['required', 'string', 'max:100', 'regex:/^[\p{L}\s\-\.\']+$/u'],
+            'cargo'    => ['required', 'string', 'max:80'],
+            'area_id'  => ['required', 'integer', Rule::exists('area', 'area_id')],
             'horario_id' => ['nullable', 'integer', Rule::exists('horario', 'horario_id')],
             'condicion_laboral' => ['required', Rule::in(Personal::CONDICIONES)],
+            // Solo digitos, +, - y espacios; minimo 6 caracteres (CA-HU01-02)
             'telefono' => ['required', 'string', 'max:15', 'regex:/^[0-9+\- ]{6,15}$/'],
-            'correo' => ['required', 'email:rfc', 'max:120'],
+            'correo'   => ['required', 'email:rfc', 'max:120'],
             'fecha_ingreso' => ['required', 'date', 'before_or_equal:today'],
         ];
     }
@@ -60,13 +62,20 @@ class PersonalRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'dni.required' => 'El DNI es obligatorio.',
-            'dni.digits' => 'El DNI debe tener exactamente 8 digitos numericos.',
-            'dni.unique' => 'Ya existe un trabajador registrado con ese DNI.',
-            'telefono.regex' => 'El telefono solo admite numeros, espacios, "+" y "-".',
+            'dni.required'      => 'El DNI es obligatorio.',
+            'dni.digits'        => 'El DNI debe tener exactamente 8 digitos numericos.',
+            'dni.unique'        => 'Ya existe un trabajador registrado con ese DNI.',
+            'nombres.required'  => 'El nombre es obligatorio.',
+            'nombres.regex'     => 'Los nombres solo deben contener letras, espacios y guiones (sin numeros).',
+            'apellidos.required' => 'Los apellidos son obligatorios.',
+            'apellidos.regex'   => 'Los apellidos solo deben contener letras, espacios y guiones (sin numeros).',
+            'telefono.required' => 'El telefono es obligatorio.',
+            'telefono.regex'    => 'El telefono solo admite digitos (0-9), espacios, "+" y "-". No se permiten letras.',
+            'correo.required'   => 'El correo electronico es obligatorio.',
+            'correo.email'      => 'Ingrese un correo electronico valido (ejemplo: nombre@dominio.com).',
             'fecha_ingreso.before_or_equal' => 'La fecha de ingreso no puede ser futura.',
             'condicion_laboral.in' => 'Seleccione una condicion laboral valida.',
-            'area_id.exists' => 'El area seleccionada no existe en el sistema.',
+            'area_id.exists'    => 'El area seleccionada no existe en el sistema.',
             'horario_id.exists' => 'El horario seleccionado no existe en el sistema.',
         ];
     }
