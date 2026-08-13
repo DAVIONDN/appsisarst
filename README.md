@@ -68,54 +68,49 @@ arquitectura se vea directamente en el árbol de directorios:
 ```
 app/
 │
-├── Modelo/                          ══ MODELO ══
-│   ├── Personal.php                 ← entidad principal del Sprint 1 (HU-01…HU-04, HU-18)
-│   ├── Area.php                     ← área de trabajo del trabajador
-│   ├── Establecimiento.php          ← unidad de salud que contiene el área
-│   ├── Horario.php                  ← horario asignado al personal
-│   ├── Rol.php                      ← roles: ADMIN_RRHH, JEFE_AREA, GERENTE_RED…
-│   ├── Permiso.php                  ← permisos: PADRON.LEER, PADRON.ESCRIBIR…
-│   ├── Usuario.php                  ← cuenta de acceso vinculada al Personal
-│   ├── LogAuditoria.php             ← trazabilidad de cambios (CA-HU02-04)
-│   ├── Asistencia.php               ← marcaciones (Sprint 2)
-│   ├── MovimientoInstitucional.php  ← traslados (Sprint 3)
-│   ├── TipoMovimiento.php           ← catálogo de tipos de movimiento
-│   ├── Reporte.php                  ← reportes (Sprint 5)
-│   ├── Servicios/                   ← reglas de negocio y auditoría
-│   │   ├── PadronService.php        ← registrar(), actualizar(), desactivar(), reactivar()
-│   │   └── AuditoriaService.php     ← guarda entradas en log_auditoria
-│   └── Excepciones/                 ← errores de regla de negocio
-│       └── ReglaNegocioException.php
+├── Modelo/                              ══ MODELO ══
+│   ├── Personal.php                     ← HU-01 / HU-02 / HU-03 / HU-04 / HU-18
+│   ├── Area.php                         ← área de trabajo del trabajador
+│   ├── Establecimiento.php              ← unidad de salud que contiene el área
+│   ├── Horario.php                      ← horario asignado al personal
+│   ├── Rol.php                          ← roles: ADMIN_RRHH, JEFE_AREA, GERENTE_RED…
+│   ├── Permiso.php                      ← permisos: PADRON.LEER, PADRON.ESCRIBIR…
+│   ├── Usuario.php                      ← cuenta de acceso vinculada al Personal
+│   ├── LogAuditoria.php                 ← trazabilidad de cambios (HU-02 / HU-04)
+│   ├── Servicios/
+│   │   ├── PadronService.php            ← registrar(), actualizar(), desactivar(), reactivar()
+│   │   └── AuditoriaService.php         ← registra entradas en log_auditoria
+│   └── Excepciones/
+│       └── ReglaNegocioException.php    ← error de regla de negocio del dominio
 │
-├── Vista/                           ══ VISTA ══
+├── Vista/                               ══ VISTA ══
 │   ├── layouts/
-│   │   └── app.blade.php            ← plantilla maestra (sidebar, topbar, mensajes)
+│   │   └── app.blade.php                ← plantilla maestra (sidebar, topbar, mensajes)
 │   ├── partials/
-│   │   └── mensajes.blade.php       ← alertas de éxito, error y acceso restringido
+│   │   └── mensajes.blade.php           ← alertas de éxito, error y acceso restringido
 │   ├── auth/
-│   │   └── login.blade.php          ← pantalla de inicio de sesión (RF-13)
-│   ├── dashboard.blade.php          ← tablero con KPIs y últimas incorporaciones
-│   ├── personal/                    ← vistas del módulo Padrón de Personal
-│   │   ├── index.blade.php          ← HU-03: listado paginado con filtros
-│   │   ├── create.blade.php         ← HU-01: formulario de alta
-│   │   ├── edit.blade.php           ← HU-02: formulario de edición
-│   │   ├── show.blade.php           ← HU-18: historial laboral / ficha individual
-│   │   └── _formulario.blade.php    ← campos compartidos HU-01 y HU-02 + validación JS
-│   └── recursos/                    ← SCSS y JavaScript (compilados con Vite)
+│   │   └── login.blade.php              ← pantalla de inicio de sesión (RF-13)
+│   ├── dashboard.blade.php              ← tablero con KPIs y últimas incorporaciones
+│   └── personal/
+│       ├── index.blade.php              ← HU-03: listado paginado con filtros
+│       ├── create.blade.php             ← HU-01: formulario de alta
+│       ├── edit.blade.php               ← HU-02: formulario de edición
+│       ├── show.blade.php               ← HU-18: historial laboral / ficha individual
+│       └── _formulario.blade.php        ← campos compartidos HU-01 y HU-02
 │
-└── Controlador/                     ══ CONTROLADOR ══
-    ├── PersonalController.php        ← HU-01…HU-04, HU-18: index, create, store, edit…
-    ├── DashboardController.php       ← tablero principal con KPIs
-    ├── Auth/                         ← acceso al sistema
-    │   └── LoginController.php       ← login / logout (RF-13)
-    ├── Middleware/                   ← control de permisos
-    │   └── VerificarPermiso.php      ← evalúa módulo+acción contra la tabla rol_permiso
-    └── Validaciones/                 ← FormRequests
-        ├── PersonalRequest.php       ← DNI, nombres, apellidos, cargo, teléfono, correo
-        ├── DesactivarPersonalRequest.php  ← motivo de baja (HU-04)
-        └── LoginRequest.php          ← credenciales de acceso
+└── Controlador/                         ══ CONTROLADOR ══
+    ├── PersonalController.php            ← HU-01 / HU-02 / HU-03 / HU-04 / HU-18
+    ├── DashboardController.php           ← tablero principal con KPIs
+    ├── Auth/
+    │   └── LoginController.php           ← login / logout (RF-13)
+    ├── Middleware/
+    │   └── VerificarPermiso.php          ← evalúa módulo + acción contra rol_permiso
+    └── Validaciones/
+        ├── PersonalRequest.php           ← HU-01 / HU-02: DNI, nombres, cargo, teléfono…
+        ├── DesactivarPersonalRequest.php ← HU-04: motivo de baja obligatorio
+        └── LoginRequest.php              ← credenciales de acceso al sistema
 
-routes/web.php                       ← enrutamiento (entrada al Controlador) + Route::fallback()
+routes/web.php                           ← enrutamiento + Route::fallback()
 ```
 
 > Esta disposición **no** es la convención de Laravel, que reparte las capas
