@@ -134,10 +134,17 @@
 
     <div class="col-12 col-md-6">
         <label for="cargo" class="form-label obligatorio">Cargo</label>
-        <input type="text" maxlength="80"
-               class="form-control @error('cargo') is-invalid @enderror"
-               id="cargo" name="cargo" value="{{ old('cargo', $p?->cargo) }}" required>
-        @error('cargo') <div class="invalid-feedback">{{ $message }}</div> @enderror
+        <input type="text" minlength="3" maxlength="80"
+               pattern="[A-Za-zÁÉÍÓÚáéíóúÑñÜü][A-Za-zÁÉÍÓÚáéíóúÑñÜü\s\-\.\/]*(\s[IVXivx0-9]{1,5})?"
+               title="El cargo debe iniciar con letras. No mezcle letras y numeros. Ej: Medico Cirujano"
+               class="form-control js-cargo @error('cargo') is-invalid @enderror"
+               id="cargo" name="cargo" value="{{ old('cargo', $p?->cargo) }}"
+               autocomplete="off" required>
+        @error('cargo')
+            <div class="invalid-feedback">{{ $message }}</div>
+        @else
+            <div class="form-text">Ej: Medico Cirujano, Enfermero Tecnico, Administrativo.</div>
+        @enderror
     </div>
 
     <div class="col-12 col-md-4">
@@ -309,6 +316,60 @@ document.addEventListener('DOMContentLoaded', function () {
                 marcarError(dniInput, 'El DNI debe tener exactamente 8 digitos numericos.');
             } else {
                 marcarOk(dniInput);
+            }
+        });
+    }
+
+    /* ── Cargo: debe iniciar con letras, sin mezcla arbitraria letras+numeros ── */
+    var cargoInput = document.getElementById('cargo');
+    if (cargoInput) {
+        // Regex: empieza con letra, luego letras/espacios/guiones/puntos/barras,
+        // opcionalmente termina con un ordinal numerico precedido de espacio.
+        var reCargo = /^[A-Za-zÀ-öø-ÿ][A-Za-zÀ-öø-ÿ\s\-\.\/]*(\s[IVXivx0-9]{1,5})?$/;
+
+        cargoInput.addEventListener('blur', function () {
+            var val = cargoInput.value.trim();
+            if (val === '') { limpiarEstado(cargoInput); return; }
+            if (val.length < 3) {
+                marcarError(cargoInput, 'El cargo debe tener al menos 3 caracteres.');
+            } else if (!reCargo.test(val)) {
+                marcarError(cargoInput, 'El cargo debe iniciar con letras y no mezclar letras con numeros. Ej: Medico Cirujano.');
+            } else {
+                marcarOk(cargoInput);
+            }
+        });
+
+        cargoInput.addEventListener('input', function () {
+            var val = cargoInput.value.trim();
+            if (val.length >= 3 && reCargo.test(val)) marcarOk(cargoInput);
+        });
+    }
+
+    /* ── Area de trabajo: validar seleccion obligatoria ─────────────── */
+    var areaSelect = document.getElementById('area_id');
+    if (areaSelect) {
+        areaSelect.addEventListener('change', function () {
+            if (areaSelect.value === '') {
+                marcarError(areaSelect, 'Debe seleccionar un area de trabajo.');
+            } else {
+                marcarOk(areaSelect);
+            }
+        });
+        areaSelect.addEventListener('blur', function () {
+            if (areaSelect.value === '') {
+                marcarError(areaSelect, 'Debe seleccionar un area de trabajo.');
+            }
+        });
+    }
+
+    /* ── Condicion laboral: validar seleccion obligatoria ────────────── */
+    var condSelect = document.getElementById('condicion_laboral');
+    if (condSelect) {
+        condSelect.addEventListener('change', function () {
+            if (condSelect.value === '') {
+                marcarError(condSelect, 'Debe seleccionar una condicion laboral.');
+            } else {
+                marcarOk(condSelect);
             }
         });
     }

@@ -45,7 +45,11 @@ class PersonalRequest extends FormRequest
             // Solo letras (incluyendo tildes y ñ), espacios, guiones y puntos (CA-HU01-02)
             'nombres'  => ['required', 'string', 'max:100', 'regex:/^[\p{L}\s\-\.\']+$/u'],
             'apellidos' => ['required', 'string', 'max:100', 'regex:/^[\p{L}\s\-\.\']+$/u'],
-            'cargo'    => ['required', 'string', 'max:80'],
+            // Cargo: empieza con letra, puede tener letras/espacios/guiones/puntos/barras
+            // y opcionalmente termina en un ordinal numerico ("Nivel 2", "Grado III").
+            // Rechaza mezclas aleatorias como "qwqw122" (CA-HU01-02).
+            'cargo'    => ['required', 'string', 'min:3', 'max:80',
+                           'regex:/^[\p{L}][\p{L}\s\-\.\/]*(\s[\dIVXivx]{1,5})?$/u'],
             'area_id'  => ['required', 'integer', Rule::exists('area', 'area_id')],
             'horario_id' => ['nullable', 'integer', Rule::exists('horario', 'horario_id')],
             'condicion_laboral' => ['required', Rule::in(Personal::CONDICIONES)],
@@ -71,6 +75,9 @@ class PersonalRequest extends FormRequest
             'apellidos.regex'   => 'Los apellidos solo deben contener letras, espacios y guiones (sin numeros).',
             'telefono.required' => 'El telefono es obligatorio.',
             'telefono.regex'    => 'El telefono solo admite digitos (0-9), espacios, "+" y "-". No se permiten letras.',
+            'cargo.required'    => 'El cargo es obligatorio.',
+            'cargo.min'         => 'El cargo debe tener al menos 3 caracteres.',
+            'cargo.regex'       => 'El cargo debe iniciar con letras. No se permiten mezclas de letras y numeros (ej: qwqw122). Ejemplo valido: Medico Cirujano.',
             'correo.required'   => 'El correo electronico es obligatorio.',
             'correo.email'      => 'Ingrese un correo electronico valido (ejemplo: nombre@dominio.com).',
             'fecha_ingreso.before_or_equal' => 'La fecha de ingreso no puede ser futura.',
