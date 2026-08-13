@@ -13,7 +13,7 @@ Arquitectura **MVC** sobre Laravel 12 · PHP 8.2 · MySQL (puerto 3306) · Boots
 | Sprint 2 | Control de Asistencia | [README_SPRINT2.md](README_SPRINT2.md) |
 | Sprint 3 | Movimientos Institucionales | [README_SPRINT3.md](README_SPRINT3.md) |
 | Sprint 4 | Usuarios y Roles | [README_SPRINT4.md](README_SPRINT4.md) |
-| Sprint 5 | Reportes | _pendiente_ |
+| Sprint 5 | Reportes | [README_SPRINT5.md](README_SPRINT5.md) |
 
 ---
 
