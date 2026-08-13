@@ -43,9 +43,9 @@ class PersonalRequest extends FormRequest
                 Rule::unique('personal', 'dni')->ignore($idActual, 'personal_id'),
             ],
             // Solo letras (incluyendo tildes y ñ), espacios y guiones.
-            // SIN puntos, numeros ni simbolos especiales (CA-HU01-02).
-            'nombres'  => ['required', 'string', 'max:100', 'regex:/^[\p{L}\s\-]+$/u'],
-            'apellidos' => ['required', 'string', 'max:100', 'regex:/^[\p{L}\s\-]+$/u'],
+            // Debe iniciar con letra. SIN puntos, numeros ni simbolos (CA-HU01-02).
+            'nombres'  => ['required', 'string', 'max:100', 'regex:/^[\p{L}][\p{L}\s\-]*$/u'],
+            'apellidos' => ['required', 'string', 'max:100', 'regex:/^[\p{L}][\p{L}\s\-]*$/u'],
             // Cargo: empieza con letra, puede tener letras/espacios/guiones/barras
             // y opcionalmente termina en un ordinal numerico ("Nivel 2", "Grado III").
             // Rechaza mezclas aleatorias como "qwqw122" y puntos (CA-HU01-02).

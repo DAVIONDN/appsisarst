@@ -41,8 +41,8 @@
     <div class="col-12 col-md-4">
         <label for="nombres" class="form-label obligatorio">Nombres</label>
         <input type="text" maxlength="100"
-               pattern="[A-Za-zÁÉÍÓÚáéíóúÑñÜüÀàÈèÌìÒòÙù\s\-]+"
-               title="Solo letras y espacios. No se permiten numeros ni puntos."
+               pattern="[A-Za-zÀ-ÖØ-öø-ÿÁÉÍÓÚáéíóúÑñÜü][A-Za-zÀ-ÖØ-öø-ÿÁÉÍÓÚáéíóúÑñÜü\s\-]*"
+               title="Solo letras y espacios. Debe iniciar con letra. No se permiten numeros ni puntos."
                class="form-control js-solo-letras @error('nombres') is-invalid @enderror"
                id="nombres" name="nombres" value="{{ old('nombres', $p?->nombres) }}"
                autocomplete="off" required>
@@ -57,8 +57,8 @@
     <div class="col-12 col-md-5">
         <label for="apellidos" class="form-label obligatorio">Apellidos</label>
         <input type="text" maxlength="100"
-               pattern="[A-Za-zÁÉÍÓÚáéíóúÑñÜüÀàÈèÌìÒòÙù\s\-]+"
-               title="Solo letras y espacios. No se permiten numeros ni puntos."
+               pattern="[A-Za-zÀ-ÖØ-öø-ÿÁÉÍÓÚáéíóúÑñÜü][A-Za-zÀ-ÖØ-öø-ÿÁÉÍÓÚáéíóúÑñÜü\s\-]*"
+               title="Solo letras y espacios. Debe iniciar con letra. No se permiten numeros ni puntos."
                class="form-control js-solo-letras @error('apellidos') is-invalid @enderror"
                id="apellidos" name="apellidos" value="{{ old('apellidos', $p?->apellidos) }}"
                autocomplete="off" required>
@@ -236,7 +236,7 @@ document.addEventListener('DOMContentLoaded', function () {
     // Caracteres validos para nombres y apellidos: letras Unicode (tildes,
     // ñ, dieresis), espacios, guiones, puntos y apostrofes.
     // Se usa el rango À-ÖØ-öø-ÿ para cubrir el Bloque Latino Extendido.
-    var reLetrasOk    = /^[A-Za-z\u00C0-\u00D6\u00D8-\u00F6\u00F8-\u00FF\s\-]+$/;
+    var reLetrasOk    = /^[A-Za-z\u00C0-\u00D6\u00D8-\u00F6\u00F8-\u00FF][A-Za-z\u00C0-\u00D6\u00D8-\u00F6\u00F8-\u00FF\s\-]*$/;
     // Caracter INVALIDO para nombre/apellido (digito o simbolo especial)
     var reCarInvalido  = /[^A-Za-z\u00C0-\u00D6\u00D8-\u00F6\u00F8-\u00FF\s\-]/;   // para test()
     var reCarInvalidoG = /[^A-Za-z\u00C0-\u00D6\u00D8-\u00F6\u00F8-\u00FF\s\-]/g; // para replace() en paste
@@ -276,6 +276,8 @@ document.addEventListener('DOMContentLoaded', function () {
             if (val === '') { limpiarEstado(input); return; }
             if (reCarInvalido.test(val)) {
                 marcarError(input, 'Solo se permiten letras (con tildes), espacios y guiones. Sin numeros ni simbolos.');
+            } else if (!/^[A-Za-z\u00C0-\u00D6\u00D8-\u00F6\u00F8-\u00FF]/.test(val)) {
+                marcarError(input, 'El campo debe iniciar con una letra.');
             } else if (!reLetrasOk.test(val)) {
                 marcarError(input, 'Solo se permiten letras, espacios y guiones.');
             } else {
@@ -377,6 +379,8 @@ document.addEventListener('DOMContentLoaded', function () {
                 marcarError(cargoInput, 'El cargo debe tener al menos 3 caracteres.');
             } else if (/^\d/.test(val)) {
                 marcarError(cargoInput, 'El cargo no puede empezar con un numero. Ej: Medico Cirujano.');
+            } else if (/-{2,}/.test(val) || val.endsWith('-')) {
+                marcarError(cargoInput, 'El cargo no puede tener guiones consecutivos ni terminar en guion.');
             } else if (!reCargo.test(val)) {
                 marcarError(cargoInput, 'El cargo debe iniciar con letras y no mezclar letras con numeros. Ej: Medico Cirujano.');
             } else {
