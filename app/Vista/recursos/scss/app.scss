@@ -95,6 +95,39 @@ body {
         color: rgba(255, 255, 255, .45);
         padding: 1rem 1.4rem .35rem;
     }
+
+    // ── Botón toggle de sprint (actúa como nav-link pero desplegable) ──
+    .sisarst-nav-toggle {
+        width: calc(100% - 1.2rem);
+        text-align: left;
+        background: none;
+        border: none;
+        cursor: pointer;
+
+        // El chevron rota cuando el panel está abierto
+        &[aria-expanded="true"] .sisarst-chevron {
+            transform: rotate(180deg);
+        }
+
+        .sisarst-chevron {
+            font-size: .75rem;
+            transition: transform .2s ease;
+            flex-shrink: 0;
+        }
+    }
+
+    // ── Submenú dentro del collapse ────────────────────────────────────
+    .sisarst-submenu {
+        padding-left: .9rem;
+        border-left: 2px solid rgba(255, 255, 255, .15);
+        margin: .1rem .6rem .1rem 1.4rem;
+
+        .nav-link {
+            margin: .05rem 0;
+            padding: .45rem .75rem;
+            font-size: .88rem;
+        }
+    }
 }
 
 .sisarst-main {

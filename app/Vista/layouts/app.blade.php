@@ -22,35 +22,119 @@
 
         <nav class="nav flex-column mt-2">
 
+            {{-- ── Dashboard ───────────────────────────────────────────── --}}
             <a class="nav-link {{ request()->routeIs('dashboard') ? 'active' : '' }}"
                href="{{ route('dashboard') }}">
                 <i class="bi bi-grid-1x2-fill"></i> Dashboard
             </a>
 
-            <a class="nav-link {{ request()->routeIs('personal.*') ? 'active' : '' }}"
-               href="{{ route('personal.index') }}">
-                <i class="bi bi-people-fill"></i> Padrón de Personal
-            </a>
+            {{-- ── Sprint 1: Padrón de Personal ────────────────────────── --}}
+            @php($s1 = request()->routeIs('personal.*'))
+            <button class="nav-link sisarst-nav-toggle {{ $s1 ? 'active' : '' }}"
+                    type="button"
+                    data-bs-toggle="collapse"
+                    data-bs-target="#nav-s1"
+                    aria-expanded="{{ $s1 ? 'true' : 'false' }}">
+                <i class="bi bi-people-fill"></i>
+                <span>Padrón de Personal</span>
+                <i class="bi bi-chevron-down sisarst-chevron ms-auto"></i>
+            </button>
+            <div class="collapse {{ $s1 ? 'show' : '' }}" id="nav-s1">
+                <div class="sisarst-submenu">
+                    <a class="nav-link {{ request()->routeIs('personal.*') ? 'active' : '' }}"
+                       href="{{ route('personal.index') }}">
+                        <i class="bi bi-person-lines-fill"></i> Padrón
+                    </a>
+                </div>
+            </div>
 
-            <a class="nav-link {{ request()->routeIs('asistencia.*') || request()->routeIs('horario.*') ? 'active' : '' }}"
-               href="{{ route('asistencia.index') }}">
-                <i class="bi bi-calendar-check"></i> Control Asistencia
-            </a>
+            {{-- ── Sprint 2: Control de Asistencia ─────────────────────── --}}
+            @php($s2 = request()->routeIs('asistencia.*') || request()->routeIs('horario.*'))
+            <button class="nav-link sisarst-nav-toggle {{ $s2 ? 'active' : '' }}"
+                    type="button"
+                    data-bs-toggle="collapse"
+                    data-bs-target="#nav-s2"
+                    aria-expanded="{{ $s2 ? 'true' : 'false' }}">
+                <i class="bi bi-calendar-check"></i>
+                <span>Control Asistencia</span>
+                <i class="bi bi-chevron-down sisarst-chevron ms-auto"></i>
+            </button>
+            <div class="collapse {{ $s2 ? 'show' : '' }}" id="nav-s2">
+                <div class="sisarst-submenu">
+                    <a class="nav-link {{ request()->routeIs('asistencia.*') ? 'active' : '' }}"
+                       href="{{ route('asistencia.index') }}">
+                        <i class="bi bi-calendar-check"></i> Asistencia
+                    </a>
+                    <a class="nav-link {{ request()->routeIs('horario.*') ? 'active' : '' }}"
+                       href="{{ route('horario.index') }}">
+                        <i class="bi bi-clock"></i> Horarios de Trabajo
+                    </a>
+                </div>
+            </div>
 
-            <a class="nav-link {{ request()->routeIs('movimiento.*') ? 'active' : '' }}"
-               href="{{ route('movimiento.index') }}">
-                <i class="bi bi-arrow-left-right"></i> Movimientos
-            </a>
+            {{-- ── Sprint 3: Movimientos ────────────────────────────────── --}}
+            @php($s3 = request()->routeIs('movimiento.*'))
+            <button class="nav-link sisarst-nav-toggle {{ $s3 ? 'active' : '' }}"
+                    type="button"
+                    data-bs-toggle="collapse"
+                    data-bs-target="#nav-s3"
+                    aria-expanded="{{ $s3 ? 'true' : 'false' }}">
+                <i class="bi bi-arrow-left-right"></i>
+                <span>Movimientos</span>
+                <i class="bi bi-chevron-down sisarst-chevron ms-auto"></i>
+            </button>
+            <div class="collapse {{ $s3 ? 'show' : '' }}" id="nav-s3">
+                <div class="sisarst-submenu">
+                    <a class="nav-link {{ request()->routeIs('movimiento.*') ? 'active' : '' }}"
+                       href="{{ route('movimiento.index') }}">
+                        <i class="bi bi-arrow-left-right"></i> Movimientos Institucionales
+                    </a>
+                </div>
+            </div>
 
-            <a class="nav-link {{ request()->routeIs('usuario.*') || request()->routeIs('rol.*') ? 'active' : '' }}"
-               href="{{ route('usuario.index') }}">
-                <i class="bi bi-person-badge"></i> Gestión de Usuarios
-            </a>
+            {{-- ── Sprint 4: Gestión de Usuarios ───────────────────────── --}}
+            @php($s4 = request()->routeIs('usuario.*') || request()->routeIs('rol.*'))
+            <button class="nav-link sisarst-nav-toggle {{ $s4 ? 'active' : '' }}"
+                    type="button"
+                    data-bs-toggle="collapse"
+                    data-bs-target="#nav-s4"
+                    aria-expanded="{{ $s4 ? 'true' : 'false' }}">
+                <i class="bi bi-person-badge"></i>
+                <span>Gestión de Usuarios</span>
+                <i class="bi bi-chevron-down sisarst-chevron ms-auto"></i>
+            </button>
+            <div class="collapse {{ $s4 ? 'show' : '' }}" id="nav-s4">
+                <div class="sisarst-submenu">
+                    <a class="nav-link {{ request()->routeIs('usuario.*') ? 'active' : '' }}"
+                       href="{{ route('usuario.index') }}">
+                        <i class="bi bi-person-badge"></i> Usuarios del Sistema
+                    </a>
+                    <a class="nav-link {{ request()->routeIs('rol.*') ? 'active' : '' }}"
+                       href="{{ route('rol.index') }}">
+                        <i class="bi bi-shield-lock"></i> Roles y Permisos
+                    </a>
+                </div>
+            </div>
 
-            <a class="nav-link {{ request()->routeIs('reporte.*') ? 'active' : '' }}"
-               href="{{ route('reporte.index') }}">
-                <i class="bi bi-file-earmark-bar-graph"></i> Reportes
-            </a>
+            {{-- ── Sprint 5: Reportes ───────────────────────────────────── --}}
+            @php($s5 = request()->routeIs('reporte.*'))
+            <button class="nav-link sisarst-nav-toggle {{ $s5 ? 'active' : '' }}"
+                    type="button"
+                    data-bs-toggle="collapse"
+                    data-bs-target="#nav-s5"
+                    aria-expanded="{{ $s5 ? 'true' : 'false' }}">
+                <i class="bi bi-file-earmark-bar-graph"></i>
+                <span>Reportes</span>
+                <i class="bi bi-chevron-down sisarst-chevron ms-auto"></i>
+            </button>
+            <div class="collapse {{ $s5 ? 'show' : '' }}" id="nav-s5">
+                <div class="sisarst-submenu">
+                    <a class="nav-link {{ request()->routeIs('reporte.*') ? 'active' : '' }}"
+                       href="{{ route('reporte.index') }}">
+                        <i class="bi bi-file-earmark-bar-graph"></i> Reportes
+                    </a>
+                </div>
+            </div>
 
         </nav>
 
