@@ -354,14 +354,22 @@ document.addEventListener('DOMContentLoaded', function () {
     if (cargoInput) {
 
         /* Bloquear simbolos claramente invalidos en cargo */
-        var reCargoInv = /[!@#$%^&*()\[\]{};:'"\\|,<>?~`=+]/;
+        var reCargoCarInv = /[^A-Za-zÀ-ÖØ-öø-ÿ\s\-\/0-9]/;
         cargoInput.addEventListener('keypress', function (e) {
-            if (e.key.length === 1 && reCargoInv.test(e.key)) {
+            if (e.key.length === 1 && reCargoCarInv.test(e.key)) {
                 e.preventDefault();
                 parpadear(cargoInput);
             }
         });
 
+
+        cargoInput.addEventListener('paste', function (e) {
+            e.preventDefault();
+            var texto  = (e.clipboardData || window.clipboardData).getData('text');
+            var limpio = texto.replace(/[^A-Za-zÀ-ÖØ-öø-ÿ\s\-\/0-9]/g, '');
+            try { document.execCommand('insertText', false, limpio); }
+            catch (_) { cargoInput.value += limpio; }
+        });
         cargoInput.addEventListener('blur', function () {
             var val = cargoInput.value.trim();
             if (val === '') { limpiarEstado(cargoInput); return; }
