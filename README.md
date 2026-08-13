@@ -1,7 +1,7 @@
 # SISARST — Sistema Web Integrado de Gestión del Personal
 
 **Red de Salud Tayacaja**
-Arquitectura **MVC** sobre Laravel 12 · PHP 8.2 · MariaDB (puerto 3307) · Bootstrap 5.3
+Arquitectura **MVC** sobre Laravel 12 · PHP 8.2 · MySQL (puerto 3306) · Bootstrap 5.3
 
 ---
 
