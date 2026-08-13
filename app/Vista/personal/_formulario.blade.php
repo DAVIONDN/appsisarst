@@ -1,4 +1,4 @@
-{{--
+﻿{{--
     Capa VISTA - Campos compartidos por HU-01 (alta) y HU-02 (edicion).
     Los campos obligatorios son los que fija la historia HU-01
     (CA-HU01-01 y CA-HU01-02).
@@ -41,8 +41,8 @@
     <div class="col-12 col-md-4">
         <label for="nombres" class="form-label obligatorio">Nombres</label>
         <input type="text" maxlength="100"
-               pattern="[A-Za-zÁÉÍÓÚáéíóúÑñÜüÀàÈèÌìÒòÙù\s\-\.]+"
-               title="Solo letras, espacios y guiones. No se permiten numeros."
+               pattern="[A-Za-zÀ-ÖØ-öø-ÿÁÉÍÓÚáéíóúÑñÜü][A-Za-zÀ-ÖØ-öø-ÿÁÉÍÓÚáéíóúÑñÜü\s]*"
+               title="Solo letras y espacios. Solo letras y espacios. Sin guiones ni simbolos."
                class="form-control js-solo-letras @error('nombres') is-invalid @enderror"
                id="nombres" name="nombres" value="{{ old('nombres', $p?->nombres) }}"
                autocomplete="off" required>
@@ -57,8 +57,8 @@
     <div class="col-12 col-md-5">
         <label for="apellidos" class="form-label obligatorio">Apellidos</label>
         <input type="text" maxlength="100"
-               pattern="[A-Za-zÁÉÍÓÚáéíóúÑñÜüÀàÈèÌìÒòÙù\s\-\.]+"
-               title="Solo letras, espacios y guiones. No se permiten numeros."
+               pattern="[A-Za-zÀ-ÖØ-öø-ÿÁÉÍÓÚáéíóúÑñÜü][A-Za-zÀ-ÖØ-öø-ÿÁÉÍÓÚáéíóúÑñÜü\s]*"
+               title="Solo letras y espacios. Solo letras y espacios. Sin guiones ni simbolos."
                class="form-control js-solo-letras @error('apellidos') is-invalid @enderror"
                id="apellidos" name="apellidos" value="{{ old('apellidos', $p?->apellidos) }}"
                autocomplete="off" required>
@@ -135,8 +135,8 @@
     <div class="col-12 col-md-6">
         <label for="cargo" class="form-label obligatorio">Cargo</label>
         <input type="text" minlength="3" maxlength="80"
-               pattern="[A-Za-zÁÉÍÓÚáéíóúÑñÜü][A-Za-zÁÉÍÓÚáéíóúÑñÜü\s\-\.\/]*(\s[IVXivx0-9]{1,5})?"
-               title="El cargo debe iniciar con letras. No mezcle letras y numeros. Ej: Medico Cirujano"
+               pattern="[A-Za-zÀ-ÖØ-öø-ÿÁÉÍÓÚáéíóúÑñÜü][A-Za-zÀ-ÖØ-öø-ÿÁÉÍÓÚáéíóúÑñÜü\s]*"
+               title="El cargo solo debe contener letras y espacios. Ej: Medico Cirujano"
                class="form-control js-cargo @error('cargo') is-invalid @enderror"
                id="cargo" name="cargo" value="{{ old('cargo', $p?->cargo) }}"
                autocomplete="off" required>
@@ -236,16 +236,17 @@ document.addEventListener('DOMContentLoaded', function () {
     // Caracteres validos para nombres y apellidos: letras Unicode (tildes,
     // ñ, dieresis), espacios, guiones, puntos y apostrofes.
     // Se usa el rango À-ÖØ-öø-ÿ para cubrir el Bloque Latino Extendido.
-    var reLetrasOk    = /^[A-Za-zÀ-ÖØ-öø-ÿ\s\-\.\u2019']+$/;
+    var reLetrasOk    = /^[A-Za-z\u00C0-\u00D6\u00D8-\u00F6\u00F8-\u00FF][A-Za-z\u00C0-\u00D6\u00D8-\u00F6\u00F8-\u00FF\s]*$/;
     // Caracter INVALIDO para nombre/apellido (digito o simbolo especial)
-    var reCarInvalido = /[^A-Za-zÀ-ÖØ-öø-ÿ\s\-\.\u2019']/;
+    var reCarInvalido  = /[^A-Za-z\u00C0-\u00D6\u00D8-\u00F6\u00F8-\u00FF\s]/;   // para test()
+    var reCarInvalidoG = /[^A-Za-z\u00C0-\u00D6\u00D8-\u00F6\u00F8-\u00FF\s]/g; // para replace() en paste
 
     // Telefono
     var reTel   = /^[0-9+\- ]{6,15}$/;
 
     // Cargo: empieza con letra, cuerpo de letras/espacios/guiones/puntos/barras,
     // opcionalmente termina con un ordinal numerico o romano precedido de espacio.
-    var reCargo = /^[A-Za-zÀ-ÖØ-öø-ÿ][A-Za-zÀ-ÖØ-öø-ÿ\s\-\.\/]*(\s[IVXivx0-9]{1,5})?$/;
+    var reCargo = /^[A-Za-z\u00C0-\u00D6\u00D8-\u00F6\u00F8-\u00FF][A-Za-z\u00C0-\u00D6\u00D8-\u00F6\u00F8-\u00FF\s]*$/;
 
     /* ── Campos de solo letras: Nombres y Apellidos ───────────────────── */
     document.querySelectorAll('.js-solo-letras').forEach(function (input) {
@@ -263,7 +264,7 @@ document.addEventListener('DOMContentLoaded', function () {
         input.addEventListener('paste', function (e) {
             e.preventDefault();
             var texto  = (e.clipboardData || window.clipboardData).getData('text');
-            var limpio = texto.replace(reCarInvalido, '');
+            var limpio = texto.replace(reCarInvalidoG, '');
             /* insertText mantiene el cursor donde corresponde */
             try { document.execCommand('insertText', false, limpio); }
             catch (_) { input.value += limpio; }
@@ -274,9 +275,11 @@ document.addEventListener('DOMContentLoaded', function () {
             var val = input.value.trim();
             if (val === '') { limpiarEstado(input); return; }
             if (reCarInvalido.test(val)) {
-                marcarError(input, 'Solo se permiten letras (con tildes), espacios y guiones. Sin numeros ni simbolos.');
+                marcarError(input, 'Solo se permiten letras con tildes y espacios. Sin guiones, numeros ni simbolos.');
+            } else if (!/^[A-Za-z\u00C0-\u00D6\u00D8-\u00F6\u00F8-\u00FF]/.test(val)) {
+                marcarError(input, 'El campo debe iniciar con una letra.');
             } else if (!reLetrasOk.test(val)) {
-                marcarError(input, 'Solo se permiten letras, espacios y guiones.');
+                marcarError(input, 'Solo se permiten letras y espacios.');
             } else {
                 marcarOk(input);
             }
@@ -353,14 +356,22 @@ document.addEventListener('DOMContentLoaded', function () {
     if (cargoInput) {
 
         /* Bloquear simbolos claramente invalidos en cargo */
-        var reCargoInv = /[!@#$%^&*()\[\]{};:'"\\|,<>?~`=+]/;
+        var reCargoCarInv = /[^A-Za-zÀ-ÖØ-öø-ÿ\s]/;
         cargoInput.addEventListener('keypress', function (e) {
-            if (e.key.length === 1 && reCargoInv.test(e.key)) {
+            if (e.key.length === 1 && reCargoCarInv.test(e.key)) {
                 e.preventDefault();
                 parpadear(cargoInput);
             }
         });
 
+
+        cargoInput.addEventListener('paste', function (e) {
+            e.preventDefault();
+            var texto  = (e.clipboardData || window.clipboardData).getData('text');
+            var limpio = texto.replace(/[^A-Za-zÀ-ÖØ-öø-ÿ\s]/g, '');
+            try { document.execCommand('insertText', false, limpio); }
+            catch (_) { cargoInput.value += limpio; }
+        });
         cargoInput.addEventListener('blur', function () {
             var val = cargoInput.value.trim();
             if (val === '') { limpiarEstado(cargoInput); return; }
@@ -369,7 +380,7 @@ document.addEventListener('DOMContentLoaded', function () {
             } else if (/^\d/.test(val)) {
                 marcarError(cargoInput, 'El cargo no puede empezar con un numero. Ej: Medico Cirujano.');
             } else if (!reCargo.test(val)) {
-                marcarError(cargoInput, 'El cargo debe iniciar con letras y no mezclar letras con numeros. Ej: Medico Cirujano.');
+                marcarError(cargoInput, 'El cargo solo debe contener letras y espacios. Ej: Medico Cirujano.');
             } else {
                 marcarOk(cargoInput);
             }
@@ -409,7 +420,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 var val = input.value.trim();
                 if (val === '' || reCarInvalido.test(val) || !reLetrasOk.test(val)) {
                     if (val !== '') {
-                        marcarError(input, 'Solo se permiten letras, espacios y guiones. Sin numeros ni simbolos.');
+                        marcarError(input, 'Solo se permiten letras y espacios. Sin guiones, numeros ni simbolos.');
                         hayError = true;
                     }
                 }
@@ -419,7 +430,7 @@ document.addEventListener('DOMContentLoaded', function () {
             if (cargoInput) {
                 var valC = cargoInput.value.trim();
                 if (valC.length > 0 && (valC.length < 3 || !reCargo.test(valC))) {
-                    marcarError(cargoInput, 'El cargo debe iniciar con letras. Ej: Medico Cirujano.');
+                    marcarError(cargoInput, 'El cargo solo debe contener letras y espacios. Ej: Medico Cirujano.');
                     hayError = true;
                 }
             }
