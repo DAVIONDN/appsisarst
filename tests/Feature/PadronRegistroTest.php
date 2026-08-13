@@ -109,7 +109,11 @@ class PadronRegistroTest extends TestCase
     {
         $jefe = $this->usuarioConRol(\App\Modelo\Rol::JEFE_AREA);
 
-        $this->actingAs($jefe)->get('/personal/nuevo')->assertForbidden();
-        $this->actingAs($jefe)->post('/personal', $this->datosPersonalValidos())->assertForbidden();
+        $this->actingAs($jefe)->get('/personal/nuevo')
+            ->assertRedirect(route('dashboard'))
+            ->assertSessionHas('warning', 'No tiene permisos para acceder a esa seccion (PADRON / ESCRIBIR).');
+        $this->actingAs($jefe)->post('/personal', $this->datosPersonalValidos())
+            ->assertRedirect(route('dashboard'))
+            ->assertSessionHas('warning', 'No tiene permisos para acceder a esa seccion (PADRON / ESCRIBIR).');
     }
 }

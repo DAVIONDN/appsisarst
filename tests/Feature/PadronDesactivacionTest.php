@@ -92,7 +92,8 @@ class PadronDesactivacionTest extends TestCase
             ->patch("/personal/{$personal->personal_id}/baja", [
                 'motivo_baja' => 'Intento no autorizado de baja',
             ])
-            ->assertForbidden();
+            ->assertRedirect(route('dashboard'))
+            ->assertSessionHas('warning', 'No tiene permisos para acceder a esa seccion (PADRON / ELIMINAR).');
     }
 
     /** CP-29 - operacion inversa */
