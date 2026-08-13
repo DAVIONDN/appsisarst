@@ -66,6 +66,6 @@ class HistorialPersonalTest extends TestCase
         $this->actingAs($this->adminRrhh())
             ->get('/dashboard')
             ->assertOk()
-            ->assertSee('Personal activo');
+            ->assertSee('Total personal');
     }
 }
