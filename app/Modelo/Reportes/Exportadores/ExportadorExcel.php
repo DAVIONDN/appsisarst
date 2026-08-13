@@ -170,22 +170,27 @@ class ExportadorExcel implements Exportador
     private function transmitir(Spreadsheet $libro, string $nombre): Response
     {
         /*
-         * Se captura el binario en memoria con ob_start() / ob_get_clean().
-         * Esto evita:
-         *   - la contaminacion de php://output por buffers de Laravel, y
-         *   - problemas de permisos o extensiones en archivos temporales
-         *     de Windows (XAMPP).
-         * El resultado es un binario limpio que se entrega como respuesta
-         * con Content-Type correcto.
+         * PhpSpreadsheet usa ZipArchive internamente para construir el .xlsx.
+         * ZipArchive escribe al descriptor de archivo nativo del SO, por lo
+         * que bypasea el output buffer de PHP: ob_start()/ob_get_clean() y
+         * StreamedResponse('php://output') NO capturan el binario correcto.
+         *
+         * Solucion: guardar en un archivo temporal real con extension .xlsx,
+         * leer el binario con file_get_contents() y entregarlo directamente.
+         * Se usa sys_get_temp_dir() + uniqid() para garantizar un nombre
+         * unico y evitar colisiones en entornos concurrentes.
          */
-        ob_start();
-        (new Xlsx($libro))->save('php://output');
-        $contenido = ob_get_clean();
+        $tmp = sys_get_temp_dir().DIRECTORY_SEPARATOR.'sisarst_'.uniqid().'.xlsx';
 
-        return response((string) $contenido, Response::HTTP_OK, [
+        (new Xlsx($libro))->save($tmp);
+
+        $bytes = (string) file_get_contents($tmp);
+        @unlink($tmp);
+
+        return response($bytes, Response::HTTP_OK, [
             'Content-Type'        => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
             'Content-Disposition' => 'attachment; filename="'.$nombre.'"',
-            'Content-Length'      => strlen((string) $contenido),
+            'Content-Length'      => strlen($bytes),
             'Cache-Control'       => 'max-age=0, must-revalidate',
             'Pragma'              => 'public',
         ]);
