@@ -60,29 +60,62 @@ Contraseña única: **`Sisarst2026$`**
 
 ---
 
-## Mapa de la arquitectura MVC
+## Mapa de la arquitectura MVC — Sprint 1
 
 Las tres capas son carpetas hermanas dentro de `app/`, para que la
 arquitectura se vea directamente en el árbol de directorios:
 
 ```
 app/
-├── Modelo/              ═══ MODELO ═══
-│   ├── *.php                  12 modelos Eloquent
-│   ├── Servicios/             reglas de negocio y auditoría
-│   └── Excepciones/           errores de regla de negocio
 │
-├── Vista/               ═══ VISTA ═══
-│   ├── *.blade.php            plantillas
-│   └── recursos/              SCSS y JavaScript
+├── Modelo/                          ══ MODELO ══
+│   ├── Personal.php                 ← entidad principal del Sprint 1 (HU-01…HU-04, HU-18)
+│   ├── Area.php                     ← área de trabajo del trabajador
+│   ├── Establecimiento.php          ← unidad de salud que contiene el área
+│   ├── Horario.php                  ← horario asignado al personal
+│   ├── Rol.php                      ← roles: ADMIN_RRHH, JEFE_AREA, GERENTE_RED…
+│   ├── Permiso.php                  ← permisos: PADRON.LEER, PADRON.ESCRIBIR…
+│   ├── Usuario.php                  ← cuenta de acceso vinculada al Personal
+│   ├── LogAuditoria.php             ← trazabilidad de cambios (CA-HU02-04)
+│   ├── Asistencia.php               ← marcaciones (Sprint 2)
+│   ├── MovimientoInstitucional.php  ← traslados (Sprint 3)
+│   ├── TipoMovimiento.php           ← catálogo de tipos de movimiento
+│   ├── Reporte.php                  ← reportes (Sprint 5)
+│   ├── Servicios/                   ← reglas de negocio y auditoría
+│   │   ├── PadronService.php        ← registrar(), actualizar(), desactivar(), reactivar()
+│   │   └── AuditoriaService.php     ← guarda entradas en log_auditoria
+│   └── Excepciones/                 ← errores de regla de negocio
+│       └── ReglaNegocioException.php
 │
-└── Controlador/         ═══ CONTROLADOR ═══
-    ├── *.php                  controladores
-    ├── Auth/                  acceso al sistema
-    ├── Middleware/            control de permisos
-    └── Validaciones/          FormRequests
+├── Vista/                           ══ VISTA ══
+│   ├── layouts/
+│   │   └── app.blade.php            ← plantilla maestra (sidebar, topbar, mensajes)
+│   ├── partials/
+│   │   └── mensajes.blade.php       ← alertas de éxito, error y acceso restringido
+│   ├── auth/
+│   │   └── login.blade.php          ← pantalla de inicio de sesión (RF-13)
+│   ├── dashboard.blade.php          ← tablero con KPIs y últimas incorporaciones
+│   ├── personal/                    ← vistas del módulo Padrón de Personal
+│   │   ├── index.blade.php          ← HU-03: listado paginado con filtros
+│   │   ├── create.blade.php         ← HU-01: formulario de alta
+│   │   ├── edit.blade.php           ← HU-02: formulario de edición
+│   │   ├── show.blade.php           ← HU-18: historial laboral / ficha individual
+│   │   └── _formulario.blade.php    ← campos compartidos HU-01 y HU-02 + validación JS
+│   └── recursos/                    ← SCSS y JavaScript (compilados con Vite)
+│
+└── Controlador/                     ══ CONTROLADOR ══
+    ├── PersonalController.php        ← HU-01…HU-04, HU-18: index, create, store, edit…
+    ├── DashboardController.php       ← tablero principal con KPIs
+    ├── Auth/                         ← acceso al sistema
+    │   └── LoginController.php       ← login / logout (RF-13)
+    ├── Middleware/                   ← control de permisos
+    │   └── VerificarPermiso.php      ← evalúa módulo+acción contra la tabla rol_permiso
+    └── Validaciones/                 ← FormRequests
+        ├── PersonalRequest.php       ← DNI, nombres, apellidos, cargo, teléfono, correo
+        ├── DesactivarPersonalRequest.php  ← motivo de baja (HU-04)
+        └── LoginRequest.php          ← credenciales de acceso
 
-routes/web.php                 enrutamiento (entrada al Controlador)
+routes/web.php                       ← enrutamiento (entrada al Controlador) + Route::fallback()
 ```
 
 > Esta disposición **no** es la convención de Laravel, que reparte las capas
