@@ -11,7 +11,6 @@ use PhpOffice\PhpSpreadsheet\Style\Alignment;
 use PhpOffice\PhpSpreadsheet\Style\Border;
 use PhpOffice\PhpSpreadsheet\Style\Fill;
 use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
-use Symfony\Component\HttpFoundation\BinaryFileResponse;
 use Symfony\Component\HttpFoundation\Response;
 
 /**
@@ -168,24 +167,28 @@ class ExportadorExcel implements Exportador
         return $this->transmitir($libro, $reporte->nombreArchivo().'.xlsx');
     }
 
-    private function transmitir(Spreadsheet $libro, string $nombre): BinaryFileResponse
+    private function transmitir(Spreadsheet $libro, string $nombre): Response
     {
         /*
-         * StreamedResponse escribiendo en php://output puede corromperse
-         * porque Laravel mantiene un buffer de salida activo durante el
-         * ciclo de vida de la peticion. La solucion fiable es guardar el
-         * libro en un archivo temporal y entregar ese archivo con
-         * BinaryFileResponse (deleteFileAfterSend limpia el tmp).
+         * Se captura el binario en memoria con ob_start() / ob_get_clean().
+         * Esto evita:
+         *   - la contaminacion de php://output por buffers de Laravel, y
+         *   - problemas de permisos o extensiones en archivos temporales
+         *     de Windows (XAMPP).
+         * El resultado es un binario limpio que se entrega como respuesta
+         * con Content-Type correcto.
          */
-        $ruta = tempnam(sys_get_temp_dir(), 'sisarst_').'xlsx';
-        (new Xlsx($libro))->save($ruta);
+        ob_start();
+        (new Xlsx($libro))->save('php://output');
+        $contenido = ob_get_clean();
 
-        return response()
-            ->download($ruta, $nombre, [
-                'Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-                'Cache-Control' => 'max-age=0, must-revalidate',
-            ])
-            ->deleteFileAfterSend(true);
+        return response((string) $contenido, Response::HTTP_OK, [
+            'Content-Type'        => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+            'Content-Disposition' => 'attachment; filename="'.$nombre.'"',
+            'Content-Length'      => strlen((string) $contenido),
+            'Cache-Control'       => 'max-age=0, must-revalidate',
+            'Pragma'              => 'public',
+        ]);
     }
 
     /** Convierte 1 en "A", 27 en "AA", etc. */
