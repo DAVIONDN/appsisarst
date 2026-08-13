@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Providers;
 
+use Illuminate\Support\Facades\URL;
+
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Pagination\Paginator;
 use Illuminate\Support\Facades\Date;
@@ -20,16 +22,9 @@ class AppServiceProvider extends ServiceProvider
     }
 
     public function boot(): void
-    {
-        // La paginacion se dibuja con Bootstrap 5.3, no con Tailwind.
-        Paginator::useBootstrapFive();
-
-        // Fechas en espanol en toda la interfaz (RNF-05).
-        Date::setLocale(config('app.locale', 'es'));
-        setlocale(LC_TIME, 'es_PE.UTF-8', 'es_ES.UTF-8', 'Spanish');
-
-        // Evita altas o ediciones silenciosas por atributos no declarados
-        // en $fillable, lo que refuerza la integridad de datos (RNF-08).
-        Model::preventSilentlyDiscardingAttributes(! $this->app->isProduction());
+{
+    if (app()->environment('production')) {
+        URL::forceScheme('https');
     }
+}
 }
