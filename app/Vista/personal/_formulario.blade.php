@@ -1,4 +1,4 @@
-{{--
+﻿{{--
     Capa VISTA - Campos compartidos por HU-01 (alta) y HU-02 (edicion).
     Los campos obligatorios son los que fija la historia HU-01
     (CA-HU01-01 y CA-HU01-02).
@@ -41,8 +41,8 @@
     <div class="col-12 col-md-4">
         <label for="nombres" class="form-label obligatorio">Nombres</label>
         <input type="text" maxlength="100"
-               pattern="[A-Za-zÁÉÍÓÚáéíóúÑñÜüÀàÈèÌìÒòÙù\s\-\.]+"
-               title="Solo letras, espacios y guiones. No se permiten numeros."
+               pattern="[A-Za-zÁÉÍÓÚáéíóúÑñÜüÀàÈèÌìÒòÙù\s\-]+"
+               title="Solo letras y espacios. No se permiten numeros ni puntos."
                class="form-control js-solo-letras @error('nombres') is-invalid @enderror"
                id="nombres" name="nombres" value="{{ old('nombres', $p?->nombres) }}"
                autocomplete="off" required>
@@ -57,8 +57,8 @@
     <div class="col-12 col-md-5">
         <label for="apellidos" class="form-label obligatorio">Apellidos</label>
         <input type="text" maxlength="100"
-               pattern="[A-Za-zÁÉÍÓÚáéíóúÑñÜüÀàÈèÌìÒòÙù\s\-\.]+"
-               title="Solo letras, espacios y guiones. No se permiten numeros."
+               pattern="[A-Za-zÁÉÍÓÚáéíóúÑñÜüÀàÈèÌìÒòÙù\s\-]+"
+               title="Solo letras y espacios. No se permiten numeros ni puntos."
                class="form-control js-solo-letras @error('apellidos') is-invalid @enderror"
                id="apellidos" name="apellidos" value="{{ old('apellidos', $p?->apellidos) }}"
                autocomplete="off" required>
@@ -135,8 +135,8 @@
     <div class="col-12 col-md-6">
         <label for="cargo" class="form-label obligatorio">Cargo</label>
         <input type="text" minlength="3" maxlength="80"
-               pattern="[A-Za-zÁÉÍÓÚáéíóúÑñÜü][A-Za-zÁÉÍÓÚáéíóúÑñÜü\s\-\.\/]*(\s[IVXivx0-9]{1,5})?"
-               title="El cargo debe iniciar con letras. No mezcle letras y numeros. Ej: Medico Cirujano"
+               pattern="[A-Za-zÁÉÍÓÚáéíóúÑñÜü][A-Za-zÁÉÍÓÚáéíóúÑñÜü\s\-\/]*(\s[IVXivx0-9]{1,5})?"
+               title="El cargo debe iniciar con letras, sin puntos. Ej: Medico Cirujano"
                class="form-control js-cargo @error('cargo') is-invalid @enderror"
                id="cargo" name="cargo" value="{{ old('cargo', $p?->cargo) }}"
                autocomplete="off" required>
@@ -236,16 +236,17 @@ document.addEventListener('DOMContentLoaded', function () {
     // Caracteres validos para nombres y apellidos: letras Unicode (tildes,
     // ñ, dieresis), espacios, guiones, puntos y apostrofes.
     // Se usa el rango À-ÖØ-öø-ÿ para cubrir el Bloque Latino Extendido.
-    var reLetrasOk    = /^[A-Za-zÀ-ÖØ-öø-ÿ\s\-\.\u2019']+$/;
+    var reLetrasOk    = /^[A-Za-z\u00C0-\u00D6\u00D8-\u00F6\u00F8-\u00FF\s\-]+$/;
     // Caracter INVALIDO para nombre/apellido (digito o simbolo especial)
-    var reCarInvalido = /[^A-Za-zÀ-ÖØ-öø-ÿ\s\-\.\u2019']/;
+    var reCarInvalido  = /[^A-Za-z\u00C0-\u00D6\u00D8-\u00F6\u00F8-\u00FF\s\-]/;   // para test()
+    var reCarInvalidoG = /[^A-Za-z\u00C0-\u00D6\u00D8-\u00F6\u00F8-\u00FF\s\-]/g; // para replace() en paste
 
     // Telefono
     var reTel   = /^[0-9+\- ]{6,15}$/;
 
     // Cargo: empieza con letra, cuerpo de letras/espacios/guiones/puntos/barras,
     // opcionalmente termina con un ordinal numerico o romano precedido de espacio.
-    var reCargo = /^[A-Za-zÀ-ÖØ-öø-ÿ][A-Za-zÀ-ÖØ-öø-ÿ\s\-\.\/]*(\s[IVXivx0-9]{1,5})?$/;
+    var reCargo = /^[A-Za-z\u00C0-\u00D6\u00D8-\u00F6\u00F8-\u00FF][A-Za-z\u00C0-\u00D6\u00D8-\u00F6\u00F8-\u00FF\s\-\/]*(\s[IVXivx0-9]{1,5})?$/;
 
     /* ── Campos de solo letras: Nombres y Apellidos ───────────────────── */
     document.querySelectorAll('.js-solo-letras').forEach(function (input) {
@@ -263,7 +264,7 @@ document.addEventListener('DOMContentLoaded', function () {
         input.addEventListener('paste', function (e) {
             e.preventDefault();
             var texto  = (e.clipboardData || window.clipboardData).getData('text');
-            var limpio = texto.replace(reCarInvalido, '');
+            var limpio = texto.replace(reCarInvalidoG, '');
             /* insertText mantiene el cursor donde corresponde */
             try { document.execCommand('insertText', false, limpio); }
             catch (_) { input.value += limpio; }
