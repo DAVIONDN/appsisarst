@@ -121,12 +121,18 @@ php composer.phar require barryvdh/laravel-dompdf:^3.1 phpoffice/phpspreadsheet:
 
 ---
 
-## Cronograma
+## Cronograma (fuente: ANALISIS SISARST, sección 4.5.3)
 
-| Actividad | Inicio | Fin |
-|-----------|--------|-----|
-| Diseño del patrón Estrategia | 28/07/2026 | 28/07/2026 |
-| Implementación de generadores | 28/07/2026 | 29/07/2026 |
-| Controlador y rutas | 29/07/2026 | 29/07/2026 |
-| Vistas y exportación PDF/Excel | 30/07/2026 | 31/07/2026 |
-| Pruebas y ajustes | 04/08/2026 | 08/08/2026 |
+**Período del Sprint:** 28/07/2026 – 14/08/2026
+
+| Actividad | Tipo | Responsable | Inicio | Fin | Días | Estado |
+|-----------|------|-------------|--------|-----|------|--------|
+| Sprint Planning | Reunión Scrum | Cristhian Prieto | 28/07 | 28/07 | 1 | Terminado |
+| Análisis de necesidades de reportes | Análisis | Sedano Humani David | 29/07 | 30/07 | 2 | Terminado |
+| Diseño UML módulo de reportes | Diseño | Silva Choque Mariano | 31/07 | 01/08 | 2 | Terminado |
+| Desarrollo HU-13 Reporte de personal | Desarrollo | Joel Mendoza Taype | 04/08 | 06/08 | 3 | Terminado |
+| Desarrollo HU-14 Reporte de asistencia | Desarrollo | Sedano Humani David | 06/08 | 08/08 | 3 | Terminado |
+| Desarrollo HU-15 Reporte de movimientos | Desarrollo | Soto Boza Eduardo | 09/08 | 11/08 | 3 | Terminado |
+| Pruebas integrales del sistema | Pruebas | Silva Choque Mariano | 11/08 | 13/08 | 3 | Terminado |
+| Sprint Review final | Reunión Scrum | Cristhian Prieto | 14/08 | 14/08 | 1 | Terminado |
+| Sprint Retrospective final | Reunión Scrum | Lisbeth Quispe | 14/08 | 14/08 | 1 | Terminado |
